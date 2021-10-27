@@ -1,0 +1,13 @@
+# general nice-to-have jupyter stuff
+jupyter-contrib-nbextensions
+ipywidgets
+pandas
+nb_black
+isort
+retrolab
+
+# specific to this project goal
+pydantic
+sqlalchemy
+sqlmodel
+psycopg2-binary

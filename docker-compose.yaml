@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      target: debug
+    ports:
+      - 5678:5678 # to attach debug
+      - 8000:8000 # actual webapp
+    volumes:
+      - ./backend/src/app:/usr/src/app
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+
+  cockroach:
+    image: cockroachdb/cockroach-unstable:v21.2.0-beta.4
+    command: start-single-node --insecure --listen-addr=localhost:26257
+
+  jupyter:
+    build: ./jupyter
+    ports:
+      - 8888:8888
+    volumes:
+      - ./jupyter/notebooks:/home/jovyan/notebooks   
+      - ./backend/src/app:/home/jovyan/backend/app:ro
+    environment:
+      PYTHONPATH: "${PYTHONPATH}:/home/jovyan/backend"
