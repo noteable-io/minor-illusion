@@ -6,8 +6,9 @@ nb_black
 isort
 retrolab
 
-# specific to this project goal
+# Exploring the test app and database
 pydantic
 sqlalchemy
 sqlmodel
 psycopg2-binary
+httpx
