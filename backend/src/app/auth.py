@@ -28,4 +28,6 @@ def get_user(token: str = Depends(oauth2_scheme)):
         statement = sa.select(User).where(User.name == token)
         results = session.execute(statement)
         db_user = results.scalars().one_or_none()
+    if not db_user:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Invalid token/user")
     return db_user
