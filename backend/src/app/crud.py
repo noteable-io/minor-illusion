@@ -51,13 +51,27 @@ def update_todo(
         results = session.execute(statement)
         todo = results.scalars().one_or_none()
         if not todo:
-            raise HTTPException(status.HTTP_404_NOT_FOUND, detail=f"Todo not found")
+            raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Todo not found")
         if title:
             todo.title = title
         if content:
             todo.content = content
         session.add(todo)
     return todo
+
+
+@router.delete("/{id}")
+def delete_todo(
+    id: uuid.UUID,
+    user: User = Depends(get_user),
+    session: Session = Depends(db_session),
+):
+    with db_session() as session:
+        statement = sa.delete(Todo).where(Todo.id == id)
+        results = session.execute(statement)
+        if results.rowcount == 0:
+            raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Todo not found")
+    return {}
 
 
 @router.post("/", response_model=Todo)
