@@ -25,15 +25,22 @@ def on_startup():
     while True:
         try:
             init_db()
+            print("Tables are reset")
             break
         except:
             print("Database not responding yet")
             time.sleep(5)
 
     # Seed data
-    user1 = User(name="user1", password="pass")
-    user2 = User(name="user2", password="pass")
-    users = [user1, user2]
+    # create 10 users
+    # create a few notes for the first user
+    users = []
+    for i in range(1, 11):
+        name = f"user{i}"
+        user = User(name=name, password="pass")
+        users.append(user)
+
+    user1 = users[0]
     todos = [
         Todo(user=user1, title="Note 1", content="My first Note"),
         Todo(user=user1, title="Note 2", content="Edit this Note"),
