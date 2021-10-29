@@ -2,6 +2,7 @@ uvicorn
 fastapi
 python-multipart
 sqlalchemy
+sqlalchemy-cockroachdb
 psycopg2-binary
 sqlmodel
 pydantic

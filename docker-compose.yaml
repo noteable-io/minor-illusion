@@ -10,18 +10,10 @@ services:
       - 8000:8000 # actual webapp
     volumes:
       - ./backend/src/app:/usr/src/app
-    depends_on:
-      - postgres
-
-  postgres:
-    image: postgres
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
 
   cockroach:
     image: cockroachdb/cockroach-unstable:v21.2.0-beta.4
-    command: start-single-node --insecure --listen-addr=localhost:26257
+    command: start-single-node --insecure --listen-addr=0.0.0.0:26257
 
   jupyter:
     build: ./jupyter
@@ -31,4 +23,4 @@ services:
       - ./jupyter/notebooks:/home/jovyan/notebooks   
       - ./backend/src/app:/home/jovyan/backend/app:ro
     environment:
-      PYTHONPATH: "${PYTHONPATH}:/home/jovyan/backend"
+      PYTHONPATH: /home/jovyan/backend

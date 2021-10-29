@@ -5,10 +5,13 @@ pandas
 nb_black
 isort
 retrolab
+rich
 
 # Exploring the test app and database
+httpx
+psycopg2-binary
 pydantic
 sqlalchemy
-sqlmodel
-psycopg2-binary
-httpx
+sqlalchemy-cockroachdb
+
+

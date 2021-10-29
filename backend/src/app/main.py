@@ -8,6 +8,7 @@ from app.auth import router as AuthRouter
 from app.crud import router as CrudRouter
 from app.db import db_session, engine
 from app.models import Base, Todo, User
+from app.schemas import UserOut
 
 
 def init_db():
@@ -27,8 +28,8 @@ def on_startup():
             init_db()
             print("Tables are reset")
             break
-        except:
-            print("Database not responding yet")
+        except Exception as e:
+            print("Database not responding yet: %s" % e)
             time.sleep(5)
 
     # Seed data
@@ -56,6 +57,6 @@ def on_startup():
         session.add_all(todos)
 
 
-@app.get("/me", response_model=User, response_model_exclude={"password": ...})
+@app.get("/me", response_model=UserOut)
 def me(user: User = Depends(get_user)):
     return user

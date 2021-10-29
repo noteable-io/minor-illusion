@@ -8,11 +8,12 @@ from sqlalchemy.orm import Session
 from app.auth import get_user
 from app.db import db_session
 from app.models import Todo, User
+from app.schemas import TodoCreate, TodoOut
 
 router = APIRouter(prefix="/todo", tags=["todo"])
 
 
-@router.get("/", response_model=List[Todo])
+@router.get("/", response_model=List[TodoOut])
 def get_all_todos(
     user: User = Depends(get_user),
     session: Session = Depends(db_session),
@@ -24,7 +25,7 @@ def get_all_todos(
     return todos
 
 
-@router.get("/{id}", response_model=Todo)
+@router.get("/{id}", response_model=TodoOut)
 def get_todo(
     id: uuid.UUID,
     user: User = Depends(get_user),
@@ -38,7 +39,7 @@ def get_todo(
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail=f"Todo not found")
 
 
-@router.put("/{id}", response_model=Todo)
+@router.put("/{id}", response_model=TodoOut)
 def update_todo(
     id: uuid.UUID,
     title: Optional[str] = Form(None),
@@ -74,14 +75,15 @@ def delete_todo(
     return {}
 
 
-@router.post("/", response_model=Todo)
+@router.post("/", response_model=TodoOut)
 def add_todo(
-    title: str = Form(...),
-    content: str = Form(...),
+    form_data: TodoCreate,
     user: User = Depends(get_user),
     session: Session = Depends(db_session),
 ):
-    todo = Todo(user_id=user.id, title=title, content=content)
+    new_todo = Todo(user=user, **form_data.dict())
     with db_session() as session:
-        session.add(todo)
-    return todo
+        session.add(new_todo)
+        session.commit()
+        session.refresh(new_todo)
+    return new_todo
