@@ -24,3 +24,13 @@ services:
       - ./backend/src/app:/home/jovyan/backend/app:ro
     environment:
       PYTHONPATH: /home/jovyan/backend
+
+  tox:
+    build:
+      context: ./backend
+      target: tox
+    command: ["tail", "-f", "/dev/null"]
+    volumes:
+      - ./backend/src/app:/usr/src/app
+      - ./backend/src/tests:/usr/src/tests
+    command: ["tail", "-f", "/dev/null"]

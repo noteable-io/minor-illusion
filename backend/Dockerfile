@@ -29,6 +29,13 @@ RUN /opt/venv/bin/python -m pip install debugpy
 # Optional: add --wait-for-client in CMD below to pause startup until debugger is attached
 CMD ["python", "-m", "debugpy", "--listen", "0.0.0.0:5678", "-m", "uvicorn", "app.main:app", "--reload", "--host", "0.0.0.0"]
 
+### Testing image
+FROM base as tox
+RUN /opt/venv/bin/python -m pip install pytest pytest-asyncio requests
+COPY ./src/tests ./tests
+CMD ["python", "-m", "pytest"]
+
+
 ### Production image
 FROM base as prod
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0"]

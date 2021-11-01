@@ -6,20 +6,29 @@
 > If you create an image of an object
 > it must be no larger than a 5-foot cube.
 
-This is a toy `Todo` application that uses some of the same frameworks as our production code.  It might be a good place to explain basic concepts, isolate and reproduce bugs, or use in interviews.  What frameworks do we love at Noteable?
+*Fun fact: all backend repos at Noteable are named after DnD spells because lead backend engineer @nicholaswold made a joke one time and CTO @MSeal ran with it*
+
+
+This is a toy `Todo` application that uses some of the same frameworks as our production code.  For the Noteable engineering team, it may be useful for demonstrating fundamental concepts, onboarding, or reproducing minimal errors.  It's worth noting that DevOps is not represented here, this repo uses `docker-compose` for convenience over standing up a local kubernetes cluster.  For anyone interested in Noteable, here's a peek into the stack you would be working with:
 
   * Backend:
-    * [FastAPI](https://fastapi.tiangolo.com/)
-    * [Pydantic](https://pydantic-docs.helpmanual.io/)
-    * [SQLAlchemy](https://www.sqlalchemy.org/)
-    * [SQLModel](https://sqlmodel.tiangolo.com/)
- 
+    * [Hypercorn](https://pgjones.gitlab.io/hypercorn/) for [ASGI](https://asgi.readthedocs.io/en/latest/)
+    * [FastAPI](https://fastapi.tiangolo.com/) for web framework
+    * [Pydantic](https://pydantic-docs.helpmanual.io/) for data validation
+    * [SQLAlchemy](https://www.sqlalchemy.org/) for database ORM
+    * [SQLModel](https://sqlmodel.tiangolo.com/) (in development) for Pydantic + SQLAlchemy convergence!
+    * [Pytest](https://docs.pytest.org/) for testing
+
+  * Backend prod tools not shown here (yet?):
+    * [alembic](https://alembic.sqlalchemy.org/en/latest/) for database migration
+    * [tox](https://tox.wiki/en/latest/index.html) for complex testing
+    
   * Database:
     * [CockroachDB](https://www.cockroachlabs.com/) 
 
   * Prototyping and exploration:
     * [Jupyter](https://jupyter-docker-stacks.readthedocs.io/en/latest/)
-
+  
 
 # Run
 
