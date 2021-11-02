@@ -34,3 +34,10 @@ services:
       - ./backend/src/app:/usr/src/app
       - ./backend/src/tests:/usr/src/tests
     command: ["tail", "-f", "/dev/null"]
+
+  frontend:
+    build: ./frontend
+    ports:
+      - 3000:3000
+    volumes:
+      - ./frontend/src:/usr/src
