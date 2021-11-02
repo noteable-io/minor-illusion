@@ -29,7 +29,6 @@ services:
     build:
       context: ./backend
       target: tox
-    command: ["tail", "-f", "/dev/null"]
     volumes:
       - ./backend/src/app:/usr/src/app
       - ./backend/src/tests:/usr/src/tests
@@ -39,5 +38,3 @@ services:
     build: ./frontend
     ports:
       - 3000:3000
-    volumes:
-      - ./frontend/src:/usr/src
