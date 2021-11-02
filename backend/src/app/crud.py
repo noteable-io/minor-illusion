@@ -7,36 +7,26 @@ from sqlalchemy.orm import Session
 
 from app.auth import get_user
 from app.db import db_session
-from app.models import Todo, User
+from app.models import TodoDAO, UserDAO
 from app.schemas import TodoCreate, TodoOut
 
 router = APIRouter(prefix="/todo", tags=["todo"])
 
 
 @router.get("/", response_model=List[TodoOut])
-def get_all_todos(
-    user: User = Depends(get_user),
-    session: Session = Depends(db_session),
-):
+def get_all_todos(user: UserDAO = Depends(get_user)):
     with db_session() as session:
-        statement = sa.select(Todo).join(User).where(User.id == User.id)
-        results = session.execute(statement)
-        todos = results.scalars().all()
+        todos = TodoDAO.get_all(session)
     return todos
 
 
 @router.get("/{id}", response_model=TodoOut)
-def get_todo(
-    id: uuid.UUID,
-    user: User = Depends(get_user),
-    session: Session = Depends(db_session),
-):
+def get_todo(id: uuid.UUID, user: UserDAO = Depends(get_user)):
     with db_session() as session:
-        statement = sa.select(Todo).where(Todo.id == id)
-        results = session.execute(statement)
-        todo = results.scalars().one_or_none()
+        todo = TodoDAO.get(session, id)
     if not todo:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail=f"Todo not found")
+    return todo
 
 
 @router.put("/{id}", response_model=TodoOut)
@@ -44,13 +34,10 @@ def update_todo(
     id: uuid.UUID,
     title: Optional[str] = Form(None),
     content: Optional[str] = Form(None),
-    user: User = Depends(get_user),
-    session: Session = Depends(db_session),
+    user: UserDAO = Depends(get_user),
 ):
     with db_session() as session:
-        statement = sa.select(Todo).where(Todo.id == id)
-        results = session.execute(statement)
-        todo = results.scalars().one_or_none()
+        todo = TodoDAO.get(session, id)
         if not todo:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Todo not found")
         if title:
@@ -62,28 +49,16 @@ def update_todo(
 
 
 @router.delete("/{id}")
-def delete_todo(
-    id: uuid.UUID,
-    user: User = Depends(get_user),
-    session: Session = Depends(db_session),
-):
+def delete_todo(id: uuid.UUID, user: UserDAO = Depends(get_user)):
     with db_session() as session:
-        statement = sa.delete(Todo).where(Todo.id == id)
-        results = session.execute(statement)
-        if results.rowcount == 0:
+        rowcount = TodoDAO.delete(session, id)
+        if rowcount == 0:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Todo not found")
     return {}
 
 
 @router.post("/", response_model=TodoOut)
-def add_todo(
-    form_data: TodoCreate,
-    user: User = Depends(get_user),
-    session: Session = Depends(db_session),
-):
-    new_todo = Todo(user=user, **form_data.dict())
+def add_todo(form_data: TodoCreate, user: UserDAO = Depends(get_user)):
     with db_session() as session:
-        session.add(new_todo)
-        session.commit()
-        session.refresh(new_todo)
+        new_todo = TodoDAO.create(session, form_data)
     return new_todo

@@ -1,13 +1,11 @@
-from contextlib import contextmanager
+from unittest.mock import MagicMock
 
 import pytest
-from app.db import db_session, engine
 from app.main import app
-from app.models import User
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import sessionmaker
 
-TestSession = sessionmaker()
+from .fake_models import FakeTodoDAO, FakeUserDAO
 
 
 @pytest.fixture
@@ -15,22 +13,12 @@ def client():
     yield TestClient(app=app)
 
 
-@pytest.fixture
-def db_connection():
-    connection = engine.connect()
-    yield connection
-    connection.close()
+@pytest.fixture(autouse=True)
+def mock_db_session(mocker):
+    mocker.patch("app.db.db_session", MagicMock())
 
 
-@pytest.fixture
-def session(db_connection):
-    transaction = db_connection.begin()
-    rollback_session = TestSession(bind=db_connection)
-    try:
-        yield rollback_session
-    finally:
-        rollback_session.close()
-        transaction.rollback()
-
-
-app.dependency_overrides[db_session] = session
+@pytest.fixture(autouse=True)
+def mock_daos(mocker):
+    mocker.patch("app.models.UserDAO", FakeUserDAO)
+    mocker.patch("app.models.TodoDAO", FakeTodoDAO)

@@ -1,4 +1,4 @@
-hypercorn
+uvicorn
 fastapi
 python-multipart
 sqlalchemy

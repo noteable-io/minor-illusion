@@ -3,6 +3,11 @@ from app.db import db_session
 from app.models import User
 
 
+@pytest.fixture
+def fake_userdao():
+    pass
+
+
 def test_unauthenticated(client):
     endpoint = "/me"
     resp = client.get(endpoint)
@@ -29,4 +34,3 @@ def test_login(client, session):
 
 def test_failed_login(client):
     pass
-
