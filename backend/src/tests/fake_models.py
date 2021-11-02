@@ -1,10 +1,10 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Union
 
 import sqlalchemy as sa
 import sqlalchemy.orm
-from app.models import BaseDAO
+from app.models import BaseDAO, TodoDAO, UserDAO
 from pydantic import BaseModel
 
 
@@ -22,11 +22,13 @@ class InMemoryDAO(metaclass=InMemoryMeta):
     @classmethod
     def new(cls, session: sa.orm.Session, api_model: Union[BaseDAO, BaseModel]):
         if isinstance(api_model, BaseDAO):
-            api_model = api_model._attribute_dict
+            d = api_model.__dict__
+            d.pop("_sa_instance_state")
+            api_model = d
         elif isinstance(api_model, BaseModel):
             api_model = api_model.dict(exclude_unset=True)
         api_model.setdefault("id", uuid.uuid4())
-        api_model.setdefault("created_at", datetime.now(datetime.timezone.utc))
+        api_model.setdefault("created_at", datetime.now(timezone.utc))
 
         model = cls.dao_cls(**api_model)
         cls.CACHE[model.id] = model
@@ -46,9 +48,11 @@ class InMemoryDAO(metaclass=InMemoryMeta):
 
 
 class FakeUserDAO(InMemoryDAO):
+    dao_cls = UserDAO
+
     @classmethod
     def get_user_by_name(cls, session: sa.orm.Session, name: str):
-        matches = [item for item in cls.CACHE.values() if item["name"] == name]
+        matches = [item for item in cls.CACHE.values() if item.name == name]
         if matches:
             return matches[0]
         else:
@@ -56,6 +60,8 @@ class FakeUserDAO(InMemoryDAO):
 
 
 class FakeTodoDAO(InMemoryDAO):
+    dao_cls = TodoDAO
+
     @classmethod
     def get_todos_by_username(cls, session: sa.orm.Session, name: str):
-        return [item for item in cls.CACHE.values() if item["user"]["name"] == name]
+        return [item for item in cls.CACHE.values() if item.user.name == name]
