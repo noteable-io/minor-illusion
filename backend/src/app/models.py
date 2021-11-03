@@ -85,3 +85,9 @@ class TodoDAO(BaseDAO):
         statement = sa.select(cls).join(UserDAO).where(UserDAO.name == name)
         results = session.execute(statement)
         return results.scalars().all()
+
+    @classmethod
+    def update_by_id(cls, session: sa.orm.Session, id: uuid.UUID, **values):
+        statement = sa.update(cls).where(cls.id == id).values(**values)
+        results = session.execute(statement)
+        return cls.get(id)

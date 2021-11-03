@@ -8,15 +8,22 @@ from sqlalchemy.orm import Session
 from app.auth import get_user
 from app.db import db_session
 from app.models import TodoDAO, UserDAO
-from app.schemas import TodoCreate, TodoOut
+from app.schemas import TodoCreate, TodoOut, TodoUpdate
 
 router = APIRouter(prefix="/todo", tags=["todo"])
+
+
+@router.post("/", response_model=TodoOut)
+def create_todo(form_data: TodoCreate, user: UserDAO = Depends(get_user)):
+    with db_session() as session:
+        new_todo = TodoDAO.create(session, form_data)
+    return new_todo
 
 
 @router.get("/", response_model=List[TodoOut])
 def get_all_todos(user: UserDAO = Depends(get_user)):
     with db_session() as session:
-        todos = TodoDAO.get_all(session)
+        todos = TodoDAO.get_todos_by_username(session, user.name)
     return todos
 
 
@@ -32,19 +39,13 @@ def get_todo(id: uuid.UUID, user: UserDAO = Depends(get_user)):
 @router.put("/{id}", response_model=TodoOut)
 def update_todo(
     id: uuid.UUID,
-    title: Optional[str] = Form(None),
-    content: Optional[str] = Form(None),
+    form_data: TodoUpdate,
     user: UserDAO = Depends(get_user),
 ):
     with db_session() as session:
-        todo = TodoDAO.get(session, id)
+        todo = TodoDAO.update_by_id(session, id, **form_data.dict())
         if not todo:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Todo not found")
-        if title:
-            todo.title = title
-        if content:
-            todo.content = content
-        session.add(todo)
     return todo
 
 
@@ -55,10 +56,3 @@ def delete_todo(id: uuid.UUID, user: UserDAO = Depends(get_user)):
         if rowcount == 0:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Todo not found")
     return {}
-
-
-@router.post("/", response_model=TodoOut)
-def add_todo(form_data: TodoCreate, user: UserDAO = Depends(get_user)):
-    with db_session() as session:
-        new_todo = TodoDAO.create(session, form_data)
-    return new_todo
