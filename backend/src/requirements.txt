@@ -1,8 +1,9 @@
-uvicorn
 fastapi
+psycopg2-binary
+pydantic
 python-multipart
+rich
 sqlalchemy
 sqlalchemy-cockroachdb
-psycopg2-binary
-sqlmodel
-pydantic
+structlog
+uvicorn

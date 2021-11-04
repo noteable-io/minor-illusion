@@ -58,9 +58,11 @@ class BaseDAO:
 
 
 class UserDAO(BaseDAO):
-    __tablename__ = "user"
+    # special case pluralize tablename to "users" so that
+    # it's easier to work with if you're using psql
+    __tablename__ = "users"
 
-    name = sa.Column(sa.String)
+    name = sa.Column(sa.String, unique=True)
     password = sa.Column(sa.String)
     todos = sa.orm.relationship("TodoDAO", back_populates="user")
 
@@ -77,7 +79,7 @@ class TodoDAO(BaseDAO):
 
     title = sa.Column(sa.String)
     content = sa.Column(sa.String)
-    user_id = sa.Column(PostgresUUID(as_uuid=True), sa.ForeignKey("user.id"))
+    user_id = sa.Column(PostgresUUID(as_uuid=True), sa.ForeignKey("users.id"))
     user = sa.orm.relationship("UserDAO", back_populates="todos", lazy="joined")
 
     @classmethod
@@ -90,4 +92,4 @@ class TodoDAO(BaseDAO):
     def update_by_id(cls, session: sa.orm.Session, id: uuid.UUID, **values):
         statement = sa.update(cls).where(cls.id == id).values(**values)
         results = session.execute(statement)
-        return cls.get(id)
+        return cls.get(session, id)

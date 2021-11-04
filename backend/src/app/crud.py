@@ -16,7 +16,10 @@ router = APIRouter(prefix="/todo", tags=["todo"])
 @router.post("/", response_model=TodoOut)
 def create_todo(form_data: TodoCreate, user: UserDAO = Depends(get_user)):
     with db_session() as session:
-        new_todo = TodoDAO.create(session, form_data)
+        data = {}
+        data.update(form_data)
+        data["user"] = user
+        new_todo = TodoDAO.create(session, data)
     return new_todo
 
 
@@ -43,7 +46,7 @@ def update_todo(
     user: UserDAO = Depends(get_user),
 ):
     with db_session() as session:
-        todo = TodoDAO.update_by_id(session, id, **form_data.dict())
+        todo = TodoDAO.update_by_id(session, id, **form_data.dict(exclude_unset=True))
         if not todo:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Todo not found")
     return todo
