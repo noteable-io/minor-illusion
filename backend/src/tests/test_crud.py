@@ -18,6 +18,7 @@ def make_todo(_id: int, title: str, content: str, user: UserDAO):
 class TestCrud:
     @pytest.fixture(autouse=True)
     def patch_todo_dao(self):
+        # Clear out the Todo table on every test run
         FakeTodoDAO.clear()
         with patch("app.crud.TodoDAO", FakeTodoDAO):
             yield
@@ -60,16 +61,45 @@ class TestCrud:
         assert resp.json() == {"detail": "Todo not found"}
 
     def test_create_todo(self, auth_client):
+        # User should have no todos to start
+        resp = auth_client.get("/todo")
+        assert len(resp.json()) == 0
+
+        # Create a todo
         data = {"title": "todo5", "content": "abc"}
         resp = auth_client.post("/todo/", json=data)
         assert resp.json()["title"] == "todo5"
         assert resp.json()["content"] == "abc"
 
+        # Get that todo by id
         _id = resp.json()["id"]
         resp = auth_client.get(f"/todo/{_id}")
         assert resp.status_code == 200
         assert resp.json()["title"] == "todo5"
         assert resp.json()["content"] == "abc"
+
+        # Now user should have 1 todo
+        resp = auth_client.get("/todo")
+        assert len(resp.json()) == 1
+
+    def test_invalid_create_todo(self, auth_client):
+        data = {"foo": "bar"}
+        resp = auth_client.post("/todo/", json=data)
+        assert resp.status_code == 422
+        assert resp.json() == {
+            "detail": [
+                {
+                    "loc": ["body", "title"],
+                    "msg": "field required",
+                    "type": "value_error.missing",
+                },
+                {
+                    "loc": ["body", "content"],
+                    "msg": "field required",
+                    "type": "value_error.missing",
+                },
+            ]
+        }
 
     def test_update_todo(self, auth_client, fake_user):
         make_todo(_id=6, title="todo6", content="xyz", user=fake_user)
