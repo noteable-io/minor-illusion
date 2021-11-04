@@ -58,7 +58,7 @@ class BaseDAO:
 
 
 class UserDAO(BaseDAO):
-    __tablename__ = "user"
+    __tablename__ = "users"
 
     name = sa.Column(sa.String)
     password = sa.Column(sa.String)
@@ -77,7 +77,7 @@ class TodoDAO(BaseDAO):
 
     title = sa.Column(sa.String)
     content = sa.Column(sa.String)
-    user_id = sa.Column(PostgresUUID(as_uuid=True), sa.ForeignKey("user.id"))
+    user_id = sa.Column(PostgresUUID(as_uuid=True), sa.ForeignKey("users.id"), index=True)
     user = sa.orm.relationship("UserDAO", back_populates="todos", lazy="joined")
 
     @classmethod

@@ -6,3 +6,4 @@ sqlalchemy-cockroachdb
 psycopg2-binary
 sqlmodel
 pydantic
+alembic
