@@ -18,6 +18,7 @@ This is a toy `Todo` application that uses some of the same frameworks as our pr
     * [SQLAlchemy](https://www.sqlalchemy.org/) for database ORM
     * [SQLModel](https://sqlmodel.tiangolo.com/) (in development) for Pydantic + SQLAlchemy convergence!
     * [Pytest](https://docs.pytest.org/) for testing
+    * [Structlog](https://www.structlog.org/en/stable/) for logging
 
   * Backend prod tools not shown here (yet?):
     * [alembic](https://alembic.sqlalchemy.org/en/latest/) for database migration
@@ -26,13 +27,16 @@ This is a toy `Todo` application that uses some of the same frameworks as our pr
   * Database:
     * [CockroachDB](https://www.cockroachlabs.com/) 
 
-  * Prototyping and exploration:
+  * Prototyping, exploration, and integration tests:
     * [Jupyter](https://jupyter-docker-stacks.readthedocs.io/en/latest/)
+
+  * Frontend:
+    * [Next.js](https://nextjs.org/)
   
 
 # Run
 
-Clone this repository and `docker-compose up -d`.  It may take a few minutes for the databases to come online.  The backend fastapi app will start once it can connect to the database.  To access Jupyter, watch the logs (`docker-compose logs jupyter`) for the Jupyter url with access token, which will look something like `http://127.0.0.1:8888/?token=a458728e0c549062d578ea9cbaa5ef2d312702c9296363c5`
+Clone this repository and `docker-compose up -d`.  It may take a few minutes for the database to come online.  The backend fastapi app will start once it can connect to the database.  To access Jupyter, watch the logs (`docker-compose logs jupyter`) for the Jupyter url with access token, which will look something like `http://127.0.0.1:8888/?token=a458728e0c549062d578ea9cbaa5ef2d312702c9296363c5`
 
 When the app is up, you can explore its endpoints via OpenAPI/Swagger at `http://localhost:8000/docs`
 
