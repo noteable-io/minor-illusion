@@ -18,16 +18,12 @@ COPY --from=builder /opt/venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 WORKDIR /usr/src    
 
-COPY ./src/app ./app
+COPY ./src .
 
 ### Development image
 FROM base as debug
-ENV PYTHONASYNCIODEBUG=1
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONDONTWRITEBYTECODE=1
 RUN /opt/venv/bin/python -m pip install debugpy
-# Optional: add --wait-for-client in CMD below to pause startup until debugger is attached
-CMD ["python", "-m", "debugpy", "--listen", "0.0.0.0:5678", "-m", "uvicorn", "app.main:app", "--reload", "--host", "0.0.0.0"]
+CMD ["/usr/src/cast.sh", "debug"]
 
 ### Testing image
 FROM base as tox
@@ -38,4 +34,4 @@ CMD ["python", "-m", "pytest"]
 
 ### Production image
 FROM base as prod
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0"]
+CMD ["cast.sh"]

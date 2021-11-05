@@ -9,7 +9,7 @@ services:
       - 5678:5678 # to attach debug
       - 8000:8000 # actual webapp
     volumes:
-      - ./backend/src/app:/usr/src/app
+      - ./backend/src:/usr/src
 
   cockroach:
     image: cockroachdb/cockroach-unstable:v21.2.0-beta.4
@@ -35,13 +35,6 @@ services:
       - ./backend/src/app:/usr/src/app
       - ./backend/src/tests:/usr/src/tests
     command: ["tail", "-f", "/dev/null"]
-
-  alembic:
-    build:
-      context: ./backend
-    volumes:
-      - ./backend/src:/usr/src
-    command: ["bash", "-c", "alembic upgrade head; tail -f /dev/null"]
 
   frontend:
     build: ./frontend
