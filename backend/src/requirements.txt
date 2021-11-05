@@ -1,10 +1,20 @@
-alembic
+# For the base app
 fastapi
 psycopg2-binary
 pydantic
 python-multipart
-rich
 sqlalchemy
 sqlalchemy-cockroachdb
 structlog
 uvicorn
+
+# For alembic
+alembic
+
+# For attaching vscode debugger
+debugpy
+
+# For testing
+pytest
+pytest-mock
+requests
