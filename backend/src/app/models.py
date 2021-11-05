@@ -58,9 +58,11 @@ class BaseDAO:
 
 
 class UserDAO(BaseDAO):
+    # special case pluralize tablename to "users" so that
+    # it's easier to work with if you're using psql
     __tablename__ = "users"
 
-    name = sa.Column(sa.String)
+    name = sa.Column(sa.String, unique=True)
     password = sa.Column(sa.String)
     todos = sa.orm.relationship("TodoDAO", back_populates="user")
 
@@ -85,3 +87,9 @@ class TodoDAO(BaseDAO):
         statement = sa.select(cls).join(UserDAO).where(UserDAO.name == name)
         results = session.execute(statement)
         return results.scalars().all()
+
+    @classmethod
+    def update_by_id(cls, session: sa.orm.Session, id: uuid.UUID, **values):
+        statement = sa.update(cls).where(cls.id == id).values(**values)
+        results = session.execute(statement)
+        return cls.get(session, id)

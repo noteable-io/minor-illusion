@@ -47,3 +47,13 @@ services:
     build: ./frontend
     ports:
       - 3000:3000
+    volumes:
+      # I'd love to just mount ./frontend/minor-illusion:/app
+      # but it is volume hell with node_modules and .next directories
+      - ./frontend/minor-illusion/src:/app/src
+      - ./frontend/minor-illusion/public:/app/public
+      - ./frontend/minor-illusion/package.json:/app/package.json
+      - ./frontend/minor-illusion/yarn.lock:/app/yarn.lock
+      
+
+

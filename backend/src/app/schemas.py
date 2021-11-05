@@ -21,6 +21,12 @@ class TodoCreate(BaseModel):
     content: str
 
 
+class TodoUpdate(BaseModel):
+    "Updating a Todo, optional title/content input"
+    title: Optional[str]
+    content: Optional[str]
+
+
 class TodoOut(BaseModel):
     "response_model for Todo ORM"
     id: uuid.UUID
