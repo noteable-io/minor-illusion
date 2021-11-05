@@ -41,3 +41,7 @@ Clone this repository and `docker-compose up -d`.  It may take a few minutes for
 When the app is up, you can explore its endpoints via OpenAPI/Swagger at `http://localhost:8000/docs`
 
 There are some Notebooks in Jupyter showing how to interact with the database and back-end API, as well as stress test 
+
+# Test Backend
+
+`docker-compose run backend python -m pytest`
