@@ -1,3 +1,4 @@
+alembic
 fastapi
 psycopg2-binary
 pydantic
@@ -5,6 +6,5 @@ python-multipart
 rich
 sqlalchemy
 sqlalchemy-cockroachdb
-alembic
 structlog
 uvicorn
