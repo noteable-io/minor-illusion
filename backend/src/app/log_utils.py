@@ -1,7 +1,6 @@
 import logging.config
 
 import structlog
-import uvicorn
 
 from app.settings import get_settings
 
