@@ -1,9 +1,7 @@
 import uuid
-from typing import List, Optional
+from typing import List
 
-import sqlalchemy as sa
-from fastapi import APIRouter, Depends, Form, HTTPException, status
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.auth import get_user
 from app.db import db_session

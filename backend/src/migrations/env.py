@@ -1,14 +1,11 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
-
-from app.settings import get_settings
 
 # All app's models live in app.models, so nothing else to import.
 from app.models import BaseDAO
+from app.settings import get_settings
+from sqlalchemy import engine_from_config, pool
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -19,7 +16,7 @@ config = context.config
 fileConfig(config.config_file_name)
 
 # Override the config option from ini file with what codebase knows.
-config.set_main_option('sqlalchemy.url', get_settings().DB_DSN)
+config.set_main_option("sqlalchemy.url", get_settings().DB_DSN)
 
 
 # add your model's MetaData object here
@@ -69,12 +66,11 @@ def run_migrations_online():
         config.get_section(config.config_ini_section),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
+        connect_args={"connect_timeout": 300},
     )
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()
