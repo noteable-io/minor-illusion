@@ -1,29 +1,20 @@
+import collections
 import uuid
 from datetime import datetime, timezone
-from typing import Union
+from typing import Dict, Union
+from unittest.mock import Mock
 
 from app.models import BaseDAO, TodoDAO, UserDAO
 from pydantic import BaseModel
-from sqlalchemy.orm import Session
+from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
 
 
-class InMemoryMeta(type):
-    def __new__(cls, name, bases, dct):
-        dao = super().__new__(cls, name, bases, dct)
-        dao.CACHE = {}
-        return dao
-
-
-class InMemoryDAO(metaclass=InMemoryMeta):
-    CACHE: dict
+class InMemoryDAO:
+    CACHE: Dict[Mock, Dict[PostgresUUID, BaseDAO]] = collections.defaultdict(dict)
     dao_cls: BaseDAO
 
     @classmethod
-    def clear(cls):
-        cls.CACHE = {}
-
-    @classmethod
-    def new(cls, session: Session, api_model: Union[BaseDAO, BaseModel]):
+    def new(cls, mock_session: Mock, api_model: Union[BaseDAO, BaseModel, dict]):
         if isinstance(api_model, BaseDAO):
             d = api_model.__dict__.copy()
             d.pop("_sa_instance_state")
@@ -38,19 +29,19 @@ class InMemoryDAO(metaclass=InMemoryMeta):
         return model
 
     @classmethod
-    def create(cls, session: Session, api_model: Union[BaseDAO, BaseModel]):
+    def create(cls, mock_session: Mock, api_model: Union[BaseDAO, BaseModel]):
         return cls.new(session, api_model)
 
     @classmethod
-    def get(cls, session: Session, id: uuid.UUID):
+    def get(cls, mock_session: Mock, id: uuid.UUID):
         return cls.CACHE.get(id)
 
     @classmethod
-    def get_all(cls, session: Session):
+    def get_all(cls, mock_session: Mock):
         return list(cls.CACHE.values())
 
     @classmethod
-    def delete(cls, session: Session, id: uuid.UUID):
+    def delete(cls, mock_session: Mock, id: uuid.UUID):
         if id in cls.CACHE:
             del cls.CACHE[id]
             return 1
