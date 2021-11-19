@@ -1,4 +1,10 @@
-# For the base app
+# This dependency list could be broken into
+# different files and only necessary libs
+# installed if minor-illusion refactored
+# to use multi-stage Docker builds or
+# separate Docker files for "production" vs "dev"
+
+# For the fastapi app
 fastapi
 psycopg2-binary
 pydantic
@@ -17,4 +23,5 @@ debugpy
 # For testing
 pytest
 pytest-mock
+pytest-xdist
 requests

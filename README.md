@@ -72,53 +72,85 @@ tests/test_crud.py .......                                                      
 
 #### Database Mocking
 
-We use a [Data Access Object (DAO)](https://en.wikipedia.org/wiki/Data_access_object) approach towards creating database models, only querying them through `@classmethod` decorators, in order to easily mock them in testing.  Entirely mocking away database transactions definitely has its shortcomings. One alternative approach is creating an in-memory `sqlite3` database for tests, which may have compatibility differences with Cockroach DB.  Another would be to just stand up a test Cockroach DB instance, although that could add significant latency to running tests.  
+There are several ways to test database interaction in a Python application.  Some common approaches are:  
 
-What does it mean in practice?  Instead of writing `statement = sa.select(...); results = session.execute(statement)` code in CRUD routers, every query action is represented in `models.py` as part of a `DAO` object.  Router code uses syntax like:
+ - Mock out the database entirely
+ - Use an in-memory `sqlite3` database as a stand-in for production
+ - Create a test database with your same production stack
 
-```python
-# imaginary crud.py router file
-@app.get('/endpoint/{id}', response_model=ThingOut)
-def endpoint(id: int):
-    with db_session() as session:
-        item = ThingDAO.get(session, id)
-    return item
-```    
+We rely heavily on the first option.  One benefit to mocking out the actual database queries is that tests run really fast.  However it does risk missing coverage on critical real-world behavior.  To mock out database interactions, we use a [Data Access Object (DAO)](https://en.wikipedia.org/wiki/Data_access_object) approach towards creating database models.
 
-instead of:
+All interactions with the database are encapsulated in `@classmethod` methods on `DAO` classes.  There are no statements or `session.execute` written in places like `crud.py` or `auth.py`.  By structuring the code this way, we can create `FakeDAO` objects for testing that override those same `@classmethod` and store real sqlalchemy `DAO` objects in memory, just not transacting with a database.
+
+A very brief and incomplete glimpse of what it looks like in practice is below, imports excluded for brevity.  See the relevant files in `backend/src/app` and `backend/src/tests` for more details and comments.
 
 ```python
-# imaginary crud.py router file
-@app.get('/endpoint/{id}', response_model=ThingOut)
-def endpoint(id: int):
-    with db_session() as session:
-        statement = sa.select(ThingDAO).where(ThingDAO.id == id)
+# models.py
+class ThingDAO:
+    name = sa.Column(sa.String)
+
+    @classmethod
+    def get_thing_by_name(cls, session: sa.orm.Session, name: str):
+        statement = sa.select(cls).where(cls.name == name)
         results = session.execute(statement)
-        item = results.scalars().first()
-    return item
+        thing = results.scalars().one_or_none()
+        return thing
 ```
 
-To test the endpoint, you'd have to create a `FakeThingDAO` in tests (see `backend/src/tests/fake_models` for examples), and then patch it into your test.  The `FakeDAO` objects use in-memory dictionaries to represent the actual database tables, and any `@classmethod`'s in your actual `DAO` models will need to be re-implemented in the `FakeDAO`'s to mimic the database transaction behavior.
+```python
+# schemas.py
+class ThingOut(BaseModel):
+    name: str
+```
 
 ```python
-# imaginary test_crud.py test file
-import pytest
-from unittest.mock import patch
-from .fake_models import FakeThingDAO
+# route.py
+@app.get('/thing/{name}', response_model=ThingOut)
+def get_thing(name: str):
+    with db_session() as session:
+        thing = ThingDAO.get_thing_by_name(session, name)
+    return thing
+```
 
+In order to test the route, we would then create a `FakeThingDAO` and patch that in during testing.
+
+```python
+# tests/fake_models.py
+class FakeThingDAO:
+    # CACHE structure is {mock_session: {model.id: model}}
+    CACHE = collections.defaultdict(dict)
+    dao_cls = ThingDAO
+
+    @classmethod
+    def create(cls, mock_session: Mock, model: ThingDAO):
+        cls.CACHE[mock_session][model.id] = model
+        return model
+
+    @classmethod
+    def get_thing_by_name(cls, mock_session: Mock, name: str):
+        # equivalent to .where(cls.name==name).one_or_none()
+        # cls.CACHE[mock_session].values() is basically the same as a db table
+        matches = [item for item in cls.CACHE[mock_session].values() if item.name == name]
+        if matches:
+            return matches[0]
+```
+
+```python
+# tests/routes.py
 @pytest.fixture(autouse=True)
-def patch_thing_dao():
-    with patch("app.crud.ThingDAO", FakeThingDAO):
-        yield
+def patch_route(mocker, db_session):
+    mocker.patch('routes.db_session', db_session)
+    mocker.patch('routes.ThingDAO', FakeThingDAO)
 
-def test_get_endpoint(client):
-    resp = client.get('/endpoint/1')
-    # ^^ since ThingDAO.get is patched to FakeThingDAO.get, 
-    # there is no database transaction.  It's an in-memory
-    # FakeThingDAO.CACHE.get(1) which returns a ThingDAO object
-    # and that can get rendered into a Pydantic validated json response
+@pytest.fixture
+def make_thing(db_session):
+    existing_thing = ThingDAO(name='foo')
+    FakeThingDAO.create(db_session, existing_thing)
+
+def test_get_thing(client, make_thing):
+    resp = client.get('/thing/foo')
     assert resp.status_code == 200
-    assert resp.json() = {...}
+    assert resp.json() == {'name': 'foo'}
 ```
 
 

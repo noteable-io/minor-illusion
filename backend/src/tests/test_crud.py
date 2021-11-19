@@ -1,90 +1,51 @@
 import uuid
-from unittest.mock import MagicMock, patch
 
 import pytest
-from app.models import TodoDAO, UserDAO
+from app.models import TodoDAO
 
 from .fake_models import FakeTodoDAO, FakeUserDAO
 
 
-def make_todo(_id: int, title: str, content: str, user: UserDAO):
-    "Helper function to simulate writing Todo's to database"
-    todo = TodoDAO(id=uuid.UUID(int=_id), title=title, content=content, user=user)
-    db_session = MagicMock()
-    FakeTodoDAO.create(db_session, todo)
-    return todo
-
-
 class TestCrud:
     @pytest.fixture(autouse=True)
-    def patch_todo_dao(self):
-        # Clear out the Todo table on every test run
-        FakeTodoDAO.clear()
-        with patch("app.crud.TodoDAO", FakeTodoDAO):
-            yield
+    def patch_auth_file(self, mocker, db_session):
+        mocker.patch("app.auth.db_session", db_session)
+        mocker.patch("app.auth.UserDAO", FakeUserDAO)
 
     @pytest.fixture(autouse=True)
-    def patch_user_dao(self):
-        # need to patch both crud and auth since auth_client
-        # is getting user from app.auth
-        with patch("app.crud.UserDAO", FakeUserDAO):
-            with patch("app.auth.UserDAO", FakeUserDAO):
-                yield
+    def patch_crud_file(self, mocker, db_session):
+        mocker.patch("app.crud.UserDAO", FakeUserDAO)
+        mocker.patch("app.crud.TodoDAO", FakeTodoDAO)
+        mocker.patch("app.crud.db_session", db_session)
 
-    def test_get_all(self, auth_client, fake_user):
-        make_todo(_id=1, title="todo1", content="foo", user=fake_user)
-        make_todo(_id=2, title="todo2", content="bar", user=fake_user)
+    @pytest.fixture
+    def existing_todos(self, db_session, fake_user):
+        todo1 = TodoDAO(id=uuid.UUID(int=1), title="1", content="foo", user=fake_user)
+        todo2 = TodoDAO(id=uuid.UUID(int=2), title="2", content="bar", user=fake_user)
+        todo3 = TodoDAO(id=uuid.UUID(int=3), title="3", content="baz", user=fake_user)
+        FakeTodoDAO.create(db_session, todo1)
+        FakeTodoDAO.create(db_session, todo2)
+        FakeTodoDAO.create(db_session, todo3)
+        yield
+        FakeTodoDAO.CACHE.pop(db_session)
 
-        resp = auth_client.get("/todo")
-        assert resp.status_code == 200
-        js = resp.json()
-        assert js[0]["id"] == "00000000-0000-0000-0000-000000000001"
-        assert js[0]["title"] == "todo1"
-        assert js[0]["content"] == "foo"
-
-        assert js[1]["id"] == "00000000-0000-0000-0000-000000000002"
-        assert js[1]["title"] == "todo2"
-        assert js[1]["content"] == "bar"
-
-    def test_get_todo_by_id(self, auth_client, fake_user):
-        make_todo(_id=3, title="todo3", content="baz", user=fake_user)
-        resp = auth_client.get(f"/todo/{uuid.UUID(int=3)}")
-        assert resp.status_code == 200
-        js = resp.json()
-        assert js["id"] == "00000000-0000-0000-0000-000000000003"
-        assert js["title"] == "todo3"
-        assert js["content"] == "baz"
-
-    def test_get_todo_by_id_does_not_exist(self, auth_client):
-        resp = auth_client.get(f"/todo/{uuid.UUID(int=4)}")
-        assert resp.status_code == 404
-        assert resp.json() == {"detail": "Todo not found"}
-
-    def test_create_todo(self, auth_client):
+    def test_create_todo(self, authed_client):
         # User should have no todos to start
-        resp = auth_client.get("/todo")
+        resp = authed_client.get("/todo")
         assert len(resp.json()) == 0
 
-        # Create a todo
-        data = {"title": "todo5", "content": "abc"}
-        resp = auth_client.post("/todo/", json=data)
-        assert resp.json()["title"] == "todo5"
-        assert resp.json()["content"] == "abc"
+        data = {"title": "test", "content": "test create todo"}
+        resp = authed_client.post("/todo/", json=data)
+        assert resp.json()["title"] == "test"
+        assert resp.json()["content"] == "test create todo"
 
-        # Get that todo by id
-        _id = resp.json()["id"]
-        resp = auth_client.get(f"/todo/{_id}")
-        assert resp.status_code == 200
-        assert resp.json()["title"] == "todo5"
-        assert resp.json()["content"] == "abc"
-
-        # Now user should have 1 todo
-        resp = auth_client.get("/todo")
+        # Check that user has exactly one todo now
+        resp = authed_client.get("/todo")
         assert len(resp.json()) == 1
 
-    def test_invalid_create_todo(self, auth_client):
+    def test_invalid_create_todo(self, authed_client):
         data = {"foo": "bar"}
-        resp = auth_client.post("/todo/", json=data)
+        resp = authed_client.post("/todo/", json=data)
         assert resp.status_code == 422
         assert resp.json() == {
             "detail": [
@@ -101,32 +62,57 @@ class TestCrud:
             ]
         }
 
-    def test_update_todo(self, auth_client, fake_user):
-        make_todo(_id=6, title="todo6", content="xyz", user=fake_user)
-        endpoint = f"/todo/{uuid.UUID(int=6)}"
-        data = {"title": "new title", "content": "new content"}
-        resp = auth_client.put(endpoint, json=data)
+    def test_get_all_todos(self, authed_client, existing_todos):
+        resp = authed_client.get("/todo")
+        assert resp.status_code == 200
+        assert len(resp.json()) == 3
+
+    def test_get_todo_by_id(self, authed_client, existing_todos):
+        resp = authed_client.get(f"/todo/{uuid.UUID(int=1)}")
         assert resp.status_code == 200
         js = resp.json()
-        assert js["id"] == "00000000-0000-0000-0000-000000000006"
+        assert js["id"] == "00000000-0000-0000-0000-000000000001"
+        assert js["title"] == "1"
+        assert js["content"] == "foo"
+
+    def test_get_todo_by_id_does_not_exist(self, authed_client):
+        resp = authed_client.get(f"/todo/{uuid.UUID(int=4)}")
+        assert resp.status_code == 404
+        assert resp.json() == {"detail": "Todo not found"}
+
+    def test_update_todo(self, authed_client, existing_todos):
+        endpoint = f"/todo/{uuid.UUID(int=1)}"
+        data = {"title": "new title", "content": "new content"}
+        # a PUT to /todo/{id} should return the new values
+        resp = authed_client.put(endpoint, json=data)
+        assert resp.status_code == 200
+        js = resp.json()
+        assert js["id"] == "00000000-0000-0000-0000-000000000001"
         assert js["title"] == "new title"
         assert js["content"] == "new content"
 
-    def test_delete_todo(self, auth_client, fake_user):
-        make_todo(_id=7, title="todo7", content="delete me", user=fake_user)
-        # Make sure it exists
-        resp = auth_client.get(f"/todo/{uuid.UUID(int=7)}")
+        # a GET to /todo/{id} should also have the new values
+        resp = authed_client.get(endpoint)
+        assert resp.status_code == 200
+        js = resp.json()
+        assert js["id"] == "00000000-0000-0000-0000-000000000001"
+        assert js["title"] == "new title"
+        assert js["content"] == "new content"
+
+    def test_delete_todo(self, authed_client, existing_todos):
+        endpoint = f"/todo/{uuid.UUID(int=1)}"
+        resp = authed_client.get(endpoint)
         assert resp.status_code == 200
 
         # delete the todo
-        resp = auth_client.delete(f"/todo/{uuid.UUID(int=7)}")
+        resp = authed_client.delete(endpoint)
         assert resp.status_code == 200
         assert resp.json() == {}
 
         # make sure we get 404 if trying to DELETE again
-        resp = auth_client.delete(f"/todo/{uuid.UUID(int=7)}")
+        resp = authed_client.delete(endpoint)
         assert resp.status_code == 404
 
         # and 404 trying to GET it again
-        resp = auth_client.get(f"/todo/{uuid.UUID(int=7)}")
+        resp = authed_client.get(endpoint)
         assert resp.status_code == 404
