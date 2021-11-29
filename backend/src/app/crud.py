@@ -48,7 +48,6 @@ async def update_todo(
         if not todo:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Todo not found")
         todo.update(form_data)
-        await session.commit()
     return todo
 
 
@@ -58,5 +57,4 @@ async def delete_todo(id: uuid.UUID, user: UserDAO = Depends(get_user)):
         rowcount = await TodoDAO.delete(session, id)
         if rowcount == 0:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Todo not found")
-        await session.commit()
     return {}

@@ -14,5 +14,6 @@ async def db_session():
     session = async_session()
     try:
         yield session
+        await session.commit()
     finally:
         await session.close()

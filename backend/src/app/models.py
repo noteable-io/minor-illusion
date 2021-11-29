@@ -36,6 +36,7 @@ class BaseDAO:
     @classmethod
     async def create(cls, session: AsyncSession, api_model: Union[BaseModel, dict]):
         model = await cls.new(session, api_model)
+        await session.flush()
         await session.refresh(model)
         return model
 
