@@ -1,10 +1,12 @@
 import uuid
-from typing import Union
+from typing import Optional, Union
 
 import sqlalchemy as sa
 import sqlalchemy.orm
 from pydantic import BaseModel
 from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm.attributes import set_attribute
 
 
 @sa.orm.as_declarative()
@@ -22,37 +24,47 @@ class BaseDAO:
     )
 
     @classmethod
-    def new(cls, session: sa.orm.Session, api_model: Union[BaseModel, dict]):
+    async def new(cls, session: AsyncSession, api_model: Union[BaseModel, dict]):
         if isinstance(api_model, BaseModel):
             api_model = api_model.dict()
 
         model = cls(**api_model)
         session.add(model)
+        await session.commit()
         return model
 
     @classmethod
-    def create(cls, session: sa.orm.Session, api_model: Union[BaseModel, dict]):
-        model = cls.new(session, api_model)
-        session.flush()
-        session.refresh(model)
+    async def create(cls, session: AsyncSession, api_model: Union[BaseModel, dict]):
+        model = await cls.new(session, api_model)
+        await session.refresh(model)
         return model
 
     @classmethod
-    def get(cls, session: sa.orm.Session, id: uuid.UUID):
+    async def get(cls, session: AsyncSession, id: uuid.UUID):
         statement = sa.select(cls).where(cls.id == id)
-        results = session.execute(statement)
+        results = await session.execute(statement)
         return results.scalars().one_or_none()
 
     @classmethod
-    def get_all(cls, session: sa.orm.Session):
+    async def get_all(cls, session: AsyncSession):
         statement = sa.select(cls)
-        results = session.execute(statement)
+        results = await session.execute(statement)
         return results.scalars().all()
 
+    def update(self, api_model: Optional[Union[BaseModel, dict]] = None, **kwargs):
+        """Update instance attributes by passing a model, dict, or kwargs to update"""
+        if api_model:
+            if isinstance(api_model, BaseModel):
+                kwargs.update(api_model.dict(exclude_unset=True))
+            else:
+                kwargs.update(api_model)
+        for key, value in kwargs.items():
+            set_attribute(self, key, value)
+
     @classmethod
-    def delete(cls, session: sa.orm.Session, id: uuid.UUID):
+    async def delete(cls, session: AsyncSession, id: uuid.UUID):
         statement = sa.delete(cls).where(cls.id == id)
-        results = session.execute(statement)
+        results = await session.execute(statement)
         return results.rowcount
 
 
@@ -66,9 +78,9 @@ class UserDAO(BaseDAO):
     todos = sa.orm.relationship("TodoDAO", back_populates="user")
 
     @classmethod
-    def get_user_by_name(cls, session: sa.orm.Session, name: str):
+    async def get_user_by_name(cls, session: AsyncSession, name: str):
         statement = sa.select(cls).where(cls.name == name)
-        results = session.execute(statement)
+        results = await session.execute(statement)
         db_user = results.scalars().one_or_none()
         return db_user
 
@@ -84,13 +96,7 @@ class TodoDAO(BaseDAO):
     user = sa.orm.relationship("UserDAO", back_populates="todos", lazy="joined")
 
     @classmethod
-    def get_todos_by_username(cls, session: sa.orm.Session, name: str):
+    async def get_todos_by_username(cls, session: AsyncSession, name: str):
         statement = sa.select(cls).join(UserDAO).where(UserDAO.name == name)
-        results = session.execute(statement)
+        results = await session.execute(statement)
         return results.scalars().all()
-
-    @classmethod
-    def update_by_id(cls, session: sa.orm.Session, id: uuid.UUID, **values):
-        statement = sa.update(cls).where(cls.id == id).values(**values)
-        results = session.execute(statement)
-        return cls.get(session, id)

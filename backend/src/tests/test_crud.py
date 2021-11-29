@@ -7,11 +7,11 @@ from app.models import TodoDAO, UserDAO
 from .fake_models import FakeTodoDAO, FakeUserDAO
 
 
-def make_todo(_id: int, title: str, content: str, user: UserDAO):
+async def make_todo(_id: int, title: str, content: str, user: UserDAO):
     "Helper function to simulate writing Todo's to database"
     todo = TodoDAO(id=uuid.UUID(int=_id), title=title, content=content, user=user)
     db_session = MagicMock()
-    FakeTodoDAO.create(db_session, todo)
+    await FakeTodoDAO.create(db_session, todo)
     return todo
 
 
@@ -31,9 +31,10 @@ class TestCrud:
             with patch("app.auth.UserDAO", FakeUserDAO):
                 yield
 
-    def test_get_all(self, auth_client, fake_user):
-        make_todo(_id=1, title="todo1", content="foo", user=fake_user)
-        make_todo(_id=2, title="todo2", content="bar", user=fake_user)
+    @pytest.mark.asyncio
+    async def test_get_all(self, auth_client, fake_user):
+        await make_todo(_id=1, title="todo1", content="foo", user=fake_user)
+        await make_todo(_id=2, title="todo2", content="bar", user=fake_user)
 
         resp = auth_client.get("/todo")
         assert resp.status_code == 200
@@ -46,8 +47,9 @@ class TestCrud:
         assert js[1]["title"] == "todo2"
         assert js[1]["content"] == "bar"
 
-    def test_get_todo_by_id(self, auth_client, fake_user):
-        make_todo(_id=3, title="todo3", content="baz", user=fake_user)
+    @pytest.mark.asyncio
+    async def test_get_todo_by_id(self, auth_client, fake_user):
+        await make_todo(_id=3, title="todo3", content="baz", user=fake_user)
         resp = auth_client.get(f"/todo/{uuid.UUID(int=3)}")
         assert resp.status_code == 200
         js = resp.json()
@@ -101,8 +103,9 @@ class TestCrud:
             ]
         }
 
-    def test_update_todo(self, auth_client, fake_user):
-        make_todo(_id=6, title="todo6", content="xyz", user=fake_user)
+    @pytest.mark.asyncio
+    async def test_update_todo(self, auth_client, fake_user):
+        await make_todo(_id=6, title="todo6", content="xyz", user=fake_user)
         endpoint = f"/todo/{uuid.UUID(int=6)}"
         data = {"title": "new title", "content": "new content"}
         resp = auth_client.put(endpoint, json=data)
@@ -112,8 +115,9 @@ class TestCrud:
         assert js["title"] == "new title"
         assert js["content"] == "new content"
 
-    def test_delete_todo(self, auth_client, fake_user):
-        make_todo(_id=7, title="todo7", content="delete me", user=fake_user)
+    @pytest.mark.asyncio
+    async def test_delete_todo(self, auth_client, fake_user):
+        await make_todo(_id=7, title="todo7", content="delete me", user=fake_user)
         # Make sure it exists
         resp = auth_client.get(f"/todo/{uuid.UUID(int=7)}")
         assert resp.status_code == 200

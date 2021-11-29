@@ -12,48 +12,51 @@ router = APIRouter(prefix="/todo", tags=["todo"])
 
 
 @router.post("/", response_model=TodoOut)
-def create_todo(form_data: TodoCreate, user: UserDAO = Depends(get_user)):
-    with db_session() as session:
+async def create_todo(form_data: TodoCreate, user: UserDAO = Depends(get_user)):
+    async with db_session() as session:
         data = {}
         data.update(form_data)
         data["user"] = user
-        new_todo = TodoDAO.create(session, data)
+        new_todo = await TodoDAO.create(session, data)
     return new_todo
 
 
 @router.get("/", response_model=List[TodoOut])
-def get_all_todos(user: UserDAO = Depends(get_user)):
-    with db_session() as session:
-        todos = TodoDAO.get_todos_by_username(session, user.name)
+async def get_all_todos(user: UserDAO = Depends(get_user)):
+    async with db_session() as session:
+        todos = await TodoDAO.get_todos_by_username(session, user.name)
     return todos
 
 
 @router.get("/{id}", response_model=TodoOut)
-def get_todo(id: uuid.UUID, user: UserDAO = Depends(get_user)):
-    with db_session() as session:
-        todo = TodoDAO.get(session, id)
+async def get_todo(id: uuid.UUID, user: UserDAO = Depends(get_user)):
+    async with db_session() as session:
+        todo = await TodoDAO.get(session, id)
     if not todo:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail=f"Todo not found")
     return todo
 
 
 @router.put("/{id}", response_model=TodoOut)
-def update_todo(
+async def update_todo(
     id: uuid.UUID,
     form_data: TodoUpdate,
     user: UserDAO = Depends(get_user),
 ):
-    with db_session() as session:
-        todo = TodoDAO.update_by_id(session, id, **form_data.dict(exclude_unset=True))
+    async with db_session() as session:
+        todo = await TodoDAO.get(session, id)
         if not todo:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Todo not found")
+        todo.update(form_data)
+        await session.commit()
     return todo
 
 
 @router.delete("/{id}")
-def delete_todo(id: uuid.UUID, user: UserDAO = Depends(get_user)):
-    with db_session() as session:
-        rowcount = TodoDAO.delete(session, id)
+async def delete_todo(id: uuid.UUID, user: UserDAO = Depends(get_user)):
+    async with db_session() as session:
+        rowcount = await TodoDAO.delete(session, id)
         if rowcount == 0:
             raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Todo not found")
+        await session.commit()
     return {}

@@ -10,9 +10,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 
 @router.post("/login", include_in_schema=False)
-def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    with db_session() as session:
-        db_user = UserDAO.get_user_by_name(session, form_data.username)
+async def login(form_data: OAuth2PasswordRequestForm = Depends()):
+    async with db_session() as session:
+        db_user = await UserDAO.get_user_by_name(session, form_data.username)
     if not db_user:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="User not found")
     if not db_user.password == form_data.password:
@@ -20,9 +20,9 @@ def login(form_data: OAuth2PasswordRequestForm = Depends()):
     return {"access_token": db_user.name, "token_type": "bearer"}
 
 
-def get_user(token: str = Depends(oauth2_scheme)):
-    with db_session() as session:
-        db_user = UserDAO.get_user_by_name(session, token)
+async def get_user(token: str = Depends(oauth2_scheme)):
+    async with db_session() as session:
+        db_user = await UserDAO.get_user_by_name(session, token)
     if not db_user:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail="Invalid token/user")
     return db_user

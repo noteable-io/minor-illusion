@@ -1,20 +1,18 @@
-from contextlib import contextmanager
+from contextlib import asynccontextmanager
 
-import sqlalchemy as sa
-import sqlalchemy.orm
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.orm import sessionmaker
 
 from app.settings import get_settings
 
-engine = sa.create_engine(get_settings().DB_DSN)
+engine = create_async_engine(get_settings().DB_DSN)
+async_session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
-LocalSession = sa.orm.sessionmaker(engine, expire_on_commit=False)
 
-
-@contextmanager
-def db_session():
-    session = LocalSession()
+@asynccontextmanager
+async def db_session():
+    session = async_session()
     try:
         yield session
-        session.commit()
     finally:
-        session.close()
+        await session.close()
