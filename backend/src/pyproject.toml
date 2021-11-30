@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "minor-illusion"
+version = "0.1.0"
+description = ""
+authors = ["Kafonek <matt.kafonek@noteable.io>"]
+license = "BSD-3-Clause"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+fastapi = "^0.70.0"
+psycopg2-binary = "^2.9.2"
+pydantic = "^1.8.2"
+python-multipart = "^0.0.5"
+SQLAlchemy = "^1.4.27"
+sqlalchemy-cockroachdb = "^1.4.2"
+structlog = "^21.4.0"
+uvicorn = "^0.15.0"
+alembic = "^1.7.5"
+debugpy = "^1.5.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.5"
+pytest-mock = "^3.6.1"
+requests = "^2.26.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
