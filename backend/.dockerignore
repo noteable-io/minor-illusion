@@ -1,0 +1,3 @@
+src/.pytest_cache/
+src/.tox/
+src/.venv
