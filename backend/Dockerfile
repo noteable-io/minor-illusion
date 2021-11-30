@@ -13,8 +13,14 @@ RUN apt-get update && apt-get install tini netcat -y
 RUN pip install poetry tox
 
 WORKDIR /usr/src
-COPY ./src .
+# Copy over poetry files and install then copy all of src
+# so that poetry installs are cached during dev
+COPY ./src/pyproject.toml .
+COPY ./src/poetry.lock .
+COPY ./src/poetry.toml .
 RUN poetry install
+
+COPY ./src .
 
 ENV PYTHONASYNCIODEBUG=1
 ENV PYTHONUNBUFFERED=1
