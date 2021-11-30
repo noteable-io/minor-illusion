@@ -15,6 +15,7 @@ async def make_todo(_id: int, title: str, content: str, user: UserDAO):
     return todo
 
 
+@pytest.mark.asyncio
 class TestCrud:
     @pytest.fixture(autouse=True)
     def patch_todo_dao(self):
@@ -31,7 +32,6 @@ class TestCrud:
             with patch("app.auth.UserDAO", FakeUserDAO):
                 yield
 
-    @pytest.mark.asyncio
     async def test_get_all(self, auth_client, fake_user):
         await make_todo(_id=1, title="todo1", content="foo", user=fake_user)
         await make_todo(_id=2, title="todo2", content="bar", user=fake_user)
@@ -47,7 +47,6 @@ class TestCrud:
         assert js[1]["title"] == "todo2"
         assert js[1]["content"] == "bar"
 
-    @pytest.mark.asyncio
     async def test_get_todo_by_id(self, auth_client, fake_user):
         await make_todo(_id=3, title="todo3", content="baz", user=fake_user)
         resp = auth_client.get(f"/todo/{uuid.UUID(int=3)}")
@@ -103,7 +102,6 @@ class TestCrud:
             ]
         }
 
-    @pytest.mark.asyncio
     async def test_update_todo(self, auth_client, fake_user):
         await make_todo(_id=6, title="todo6", content="xyz", user=fake_user)
         endpoint = f"/todo/{uuid.UUID(int=6)}"
@@ -115,7 +113,6 @@ class TestCrud:
         assert js["title"] == "new title"
         assert js["content"] == "new content"
 
-    @pytest.mark.asyncio
     async def test_delete_todo(self, auth_client, fake_user):
         await make_todo(_id=7, title="todo7", content="delete me", user=fake_user)
         # Make sure it exists
