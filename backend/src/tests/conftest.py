@@ -14,15 +14,15 @@ def client():
 
 
 @pytest.fixture
-def db_session():
+async def db_session():
     return MagicMock()
 
 
 @pytest.fixture
-def fake_user(db_session):
+async def fake_user(db_session):
     FakeUserDAO.clear()
     user = UserDAO(name="test_user", password="pass")
-    FakeUserDAO.create(db_session, user)
+    await FakeUserDAO.create(db_session, user)
     return user
 
 

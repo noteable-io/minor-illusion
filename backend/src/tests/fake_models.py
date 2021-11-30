@@ -23,7 +23,7 @@ class InMemoryDAO(metaclass=InMemoryMeta):
         cls.CACHE = {}
 
     @classmethod
-    def new(cls, session: Session, api_model: Union[BaseDAO, BaseModel]):
+    async def new(cls, session: Session, api_model: Union[BaseDAO, BaseModel]):
         if isinstance(api_model, BaseDAO):
             d = api_model.__dict__.copy()
             d.pop("_sa_instance_state")
@@ -38,19 +38,31 @@ class InMemoryDAO(metaclass=InMemoryMeta):
         return model
 
     @classmethod
-    def create(cls, session: Session, api_model: Union[BaseDAO, BaseModel]):
-        return cls.new(session, api_model)
+    async def create(cls, session: Session, api_model: Union[BaseDAO, BaseModel]):
+        return await cls.new(session, api_model)
 
     @classmethod
-    def get(cls, session: Session, id: uuid.UUID):
+    async def get(cls, session: Session, id: uuid.UUID):
         return cls.CACHE.get(id)
 
     @classmethod
-    def get_all(cls, session: Session):
+    async def get_all(cls, session: Session):
         return list(cls.CACHE.values())
 
     @classmethod
-    def delete(cls, session: Session, id: uuid.UUID):
+    async def update(
+        cls, session: Session, id: uuid.UUID, values: Union[BaseModel, dict]
+    ):
+        obj = await cls.get(session, id)
+        if not obj:
+            return None
+        if isinstance(values, BaseModel):
+            values = values.dict(exclude_unset=True)
+        obj.update(values)
+        return obj
+
+    @classmethod
+    async def delete(cls, session: Session, id: uuid.UUID):
         if id in cls.CACHE:
             del cls.CACHE[id]
             return 1
@@ -62,7 +74,7 @@ class FakeUserDAO(InMemoryDAO):
     dao_cls = UserDAO
 
     @classmethod
-    def get_user_by_name(cls, session: Session, name: str):
+    async def get_user_by_name(cls, session: Session, name: str):
         matches = [item for item in cls.CACHE.values() if item.name == name]
         if matches:
             return matches[0]
@@ -74,13 +86,5 @@ class FakeTodoDAO(InMemoryDAO):
     dao_cls = TodoDAO
 
     @classmethod
-    def get_todos_by_username(cls, session: Session, name: str):
+    async def get_todos_by_username(cls, session: Session, name: str):
         return [item for item in cls.CACHE.values() if item.user.name == name]
-
-    @classmethod
-    def update_by_id(cls, session: Session, id: uuid.UUID, **values):
-        item = cls.get(session, id)
-        if not item:
-            return
-        item.__dict__.update(values)
-        return item

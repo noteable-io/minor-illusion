@@ -16,6 +16,7 @@ This is a toy `Todo` application that uses some of the same frameworks as our pr
     * [FastAPI](https://fastapi.tiangolo.com/) for the web framework
     * [Pydantic](https://pydantic-docs.helpmanual.io/) for data validation
     * [SQLAlchemy](https://www.sqlalchemy.org/) for database ORM
+    * [sqlalchemy-cockroachdb](https://github.com/cockroachdb/sqlalchemy-cockroachdb) + [asyncpg](https://magicstack.github.io/asyncpg/current/) for the database driver
     * [Alembic](https://alembic.sqlalchemy.org/en/latest/) for database migration
     * [SQLModel](https://sqlmodel.tiangolo.com/) (in development) for Pydantic + SQLAlchemy convergence!
     * [Structlog](https://www.structlog.org/en/stable/) for logging

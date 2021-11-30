@@ -8,11 +8,12 @@ retrolab
 rich
 
 # Exploring the test app and database
+asyncpg
 httpx
 psycopg2-binary
 pydantic
 sqlalchemy
-sqlalchemy-cockroachdb
+git+https://github.com/gordthompson/sqlalchemy-cockroachdb.git@pr20211117a
 structlog
 
 
