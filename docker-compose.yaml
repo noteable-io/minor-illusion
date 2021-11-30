@@ -7,7 +7,8 @@ services:
       - 5678:5678 # to attach debug
       - 8000:8000 # actual webapp
     volumes:
-      - ./backend/src:/usr/src
+      - ./backend/src/app:/usr/src/app
+      - ./backend/src/tests:/usr/src/tests
 
   cockroach:
     image: cockroachdb/cockroach-unstable:v21.2.0-beta.4
