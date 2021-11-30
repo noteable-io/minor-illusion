@@ -1,12 +1,9 @@
-# Builds and tests the gate server
-name: minor-illusion
+name: "tox"
 
-# Trigger the workflow on all pull requests and only pushes to the main branch
 on:
   push:
     branches:
       - main
-      - tox
 
   pull_request:
     branches:
@@ -16,8 +13,6 @@ jobs:
   tests:
     name: "tox"
     runs-on: "ubuntu-latest"
-    
-
     steps:
       - uses: "actions/checkout@v2"
       - uses: "actions/setup-python@v2"
@@ -29,9 +24,9 @@ jobs:
           python -VV
           python -m site
           python -m pip install --upgrade pip setuptools wheel
-          python -m pip install --upgrade coverage[toml] virtualenv tox tox-gh-actions
+          python -m pip install --upgrade poetry tox tox-gh-actions
 
       - name: "Run tox"
         run: "python -m tox"
-        working-directory: "backend/src"
+        working-directory: "./backend/src"
         
