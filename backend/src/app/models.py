@@ -30,7 +30,6 @@ class BaseDAO:
 
         model = cls(**api_model)
         session.add(model)
-        await session.commit()
         return model
 
     @classmethod
