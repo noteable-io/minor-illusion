@@ -33,5 +33,6 @@ jobs:
 
       - name: "Run tox"
         run: "python -m tox"
-        working-directory: "backend/src"
+        with:
+          working-directory: "backend/src"
         
