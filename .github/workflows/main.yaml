@@ -32,6 +32,8 @@ jobs:
           python -m pip install --upgrade coverage[toml] virtualenv tox tox-gh-actions
 
       - name: "Run tox"
-        run: "python -m tox"
+        run: |
+          pwd
+          python -m tox
         working-directory: "./backend/src"
         
