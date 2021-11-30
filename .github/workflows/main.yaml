@@ -1,12 +1,9 @@
-# Builds and tests the gate server
-name: minor-illusion
+name: "tox"
 
-# Trigger the workflow on all pull requests and only pushes to the main branch
 on:
   push:
     branches:
       - main
-      - tox
 
   pull_request:
     branches:
@@ -16,8 +13,6 @@ jobs:
   tests:
     name: "tox"
     runs-on: "ubuntu-latest"
-    
-
     steps:
       - uses: "actions/checkout@v2"
       - uses: "actions/setup-python@v2"
