@@ -94,7 +94,7 @@ class TodoDAO(BaseDAO):
     user_id = sa.Column(
         PostgresUUID(as_uuid=True), sa.ForeignKey("users.id"), index=True
     )
-    user = sa.orm.relationship("UserDAO", back_populates="todos", lazy="joined")
+    user = sa.orm.relationship("UserDAO", back_populates="todos", lazy="selectin")
 
     @classmethod
     async def get_todos_by_username(cls, session: AsyncSession, name: str):
