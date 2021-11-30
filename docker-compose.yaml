@@ -9,6 +9,7 @@ services:
     volumes:
       - ./backend/src/app:/usr/src/app
       - ./backend/src/tests:/usr/src/tests
+      - ./backend/src/migrations/versions:/usr/src/migrations/versions
 
   cockroach:
     image: cockroachdb/cockroach-unstable:v21.2.0-beta.4
