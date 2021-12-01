@@ -83,25 +83,22 @@ class ThingDAO:
     name = sa.Column(sa.String)
 
     @classmethod
-    def get_thing_by_name(cls, session: sa.orm.Session, name: str):
+    async def get_thing_by_name(cls, session: AsyncSession, name: str):
         statement = sa.select(cls).where(cls.name == name)
-        results = session.execute(statement)
+        results = await session.execute(statement)
         thing = results.scalars().one_or_none()
         return thing
 ```
 
 ```python
-# schemas.py
+# route.py
 class ThingOut(BaseModel):
     name: str
-```
 
-```python
-# route.py
 @app.get('/thing/{name}', response_model=ThingOut)
 def get_thing(name: str):
-    with db_session() as session:
-        thing = ThingDAO.get_thing_by_name(session, name)
+    async with db_session() as session:
+        thing = await ThingDAO.get_thing_by_name(session, name)
     return thing
 ```
 
@@ -115,12 +112,12 @@ class FakeThingDAO:
     dao_cls = ThingDAO
 
     @classmethod
-    def create(cls, mock_session: Mock, model: ThingDAO):
+    async def create(cls, mock_session: MagicMock, model: ThingDAO):
         cls.CACHE[mock_session][model.id] = model
         return model
 
     @classmethod
-    def get_thing_by_name(cls, mock_session: Mock, name: str):
+    async def get_thing_by_name(cls, mock_session: MagicMock, name: str):
         # equivalent to .where(cls.name==name).one_or_none()
         # cls.CACHE[mock_session].values() is basically the same as a db table
         matches = [item for item in cls.CACHE[mock_session].values() if item.name == name]
@@ -131,16 +128,19 @@ class FakeThingDAO:
 ```python
 # tests/routes.py
 @pytest.fixture(autouse=True)
-def patch_route(mocker, db_session):
+def patch_route(mocker: MockerFixture, db_session: MagicMock):
     mocker.patch('routes.db_session', db_session)
     mocker.patch('routes.ThingDAO', FakeThingDAO)
 
 @pytest.fixture
-def make_thing(db_session):
-    existing_thing = ThingDAO(name='foo')
-    FakeThingDAO.create(db_session, existing_thing)
+async def make_thing(db_session: MagicMock):
+    test_seed_thing = ThingDAO(name='foo')
+    await FakeThingDAO.create(db_session, test_seed_thing)
+    yield
+    # clean up, roughly equivalent to a transactional rollback
+    FakeThingDAO.CACHE.pop(db_session)
 
-def test_get_thing(client, make_thing):
+def test_get_thing(client: TestClient, make_thing: None):
     resp = client.get('/thing/foo')
     assert resp.status_code == 200
     assert resp.json() == {'name': 'foo'}
