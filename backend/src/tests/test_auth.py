@@ -36,7 +36,7 @@ class TestAuth:
 
     def test_invalid_password(self, client: TestClient, fake_user: UserDAO):
         endpoint = "/auth/login"
-        data = {"username": "test_user", "password": "ssap"}
+        data = {"username": fake_user.name, "password": fake_user.password + "invalid"}
         resp = client.post(endpoint, data=data)
         assert resp.status_code == 403
         assert resp.json() == {"detail": "Incorrect password"}
