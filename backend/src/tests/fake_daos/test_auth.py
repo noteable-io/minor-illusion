@@ -5,7 +5,7 @@ from app.models import UserDAO
 from pytest_mock import MockerFixture
 from starlette.testclient import TestClient
 
-from tests.fake_models import FakeUserDAO
+from .fake_models import FakeUserDAO
 
 
 class TestAuth:

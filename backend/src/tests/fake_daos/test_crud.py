@@ -32,7 +32,6 @@ class TestCrud:
         await FakeTodoDAO.create(db_session, todo2)
         await FakeTodoDAO.create(db_session, todo3)
         yield
-        FakeTodoDAO.CACHE.pop(db_session)
 
     def test_create_todo(self, authed_client: TestClient):
         # User should have no todos to start
