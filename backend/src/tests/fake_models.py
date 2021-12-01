@@ -2,11 +2,10 @@ import collections
 import uuid
 from datetime import datetime, timezone
 from typing import Dict, Union
-from unittest.mock import Mock
+from unittest.mock import MagicMock
 
 from app.models import BaseDAO, TodoDAO, UserDAO
 from pydantic import BaseModel
-from sqlalchemy.dialects.postgresql import UUID as PostgresUUID
 
 
 class InMemoryDAO:
@@ -23,13 +22,15 @@ class InMemoryDAO:
     # Alternatively, have a metaclass create this.
     # In order to sort-of simulate transactional rollback and per-test
     # isolation, the structure is {mock_db_session: {model.id: model}}
-    CACHE: Dict[Mock, Dict[PostgresUUID, BaseDAO]] = collections.defaultdict(dict)
+    CACHE: Dict[MagicMock, Dict[uuid.UUID, BaseDAO]] = collections.defaultdict(dict)
 
     # all @classmethod's from BaseDAO should be represented below,
     # but interacting with cls.CACHE instead of a database
 
     @classmethod
-    def new(cls, mock_session: Mock, api_model: Union[BaseDAO, BaseModel, dict]):
+    async def new(
+        cls, mock_session: MagicMock, api_model: Union[BaseDAO, BaseModel, dict]
+    ):
         if isinstance(api_model, BaseDAO):
             d = api_model.__dict__.copy()
             d.pop("_sa_instance_state")
@@ -44,19 +45,21 @@ class InMemoryDAO:
         return model
 
     @classmethod
-    def create(cls, mock_session: Mock, api_model: Union[BaseDAO, BaseModel]):
-        return cls.new(mock_session, api_model)
+    async def create(
+        cls, mock_session: MagicMock, api_model: Union[BaseDAO, BaseModel]
+    ):
+        return await cls.new(mock_session, api_model)
 
     @classmethod
-    def get(cls, mock_session: Mock, id: uuid.UUID):
+    async def get(cls, mock_session: MagicMock, id: uuid.UUID):
         return cls.CACHE[mock_session].get(id)
 
     @classmethod
-    def get_all(cls, mock_session: Mock):
+    async def get_all(cls, mock_session: MagicMock):
         return list(cls.CACHE[mock_session].values())
 
     @classmethod
-    def delete(cls, mock_session: Mock, id: uuid.UUID):
+    async def delete(cls, mock_session: MagicMock, id: uuid.UUID):
         # mock returning result.rowcount from database DELETE
         if id in cls.CACHE[mock_session]:
             del cls.CACHE[mock_session][id]
@@ -70,7 +73,7 @@ class FakeUserDAO(InMemoryDAO):
     CACHE = collections.defaultdict(dict)
 
     @classmethod
-    def get_user_by_name(cls, mock_session: Mock, name: str):
+    async def get_user_by_name(cls, mock_session: MagicMock, name: str):
         matches = [
             item for item in cls.CACHE[mock_session].values() if item.name == name
         ]
@@ -85,13 +88,6 @@ class FakeTodoDAO(InMemoryDAO):
     CACHE = collections.defaultdict(dict)
 
     @classmethod
-    def get_todos_by_username(cls, mock_session: Mock, name: str):
-        return [item for item in cls.get_all(mock_session) if item.user.name == name]
-
-    @classmethod
-    def update_by_id(cls, mock_session: Mock, id: uuid.UUID, **values):
-        item = cls.get(mock_session, id)
-        if not item:
-            return
-        item.__dict__.update(values)
-        return item
+    async def get_todos_by_username(cls, mock_session: MagicMock, name: str):
+        items = await cls.get_all(mock_session)
+        return [item for item in items if item.user.name == name]
