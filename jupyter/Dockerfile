@@ -1,4 +1,8 @@
+FROM cockroachdb/cockroach:v21.2.2 AS cockroach
+
 FROM jupyter/minimal-notebook
+
+COPY --from=cockroach --chown=jovyan:users /cockroach/cockroach /usr/local/bin/cockroach
 
 COPY requirements.txt /tmp/requirements.txt
 RUN python -m pip install \
