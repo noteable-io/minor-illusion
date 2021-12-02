@@ -1,11 +1,11 @@
 import time
 from contextlib import asynccontextmanager
 
+import httpx
 import mirakuru
 import pytest
 from app.main import app
 from app.models import BaseDAO, UserDAO
-from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
@@ -27,7 +27,7 @@ async def test_db_session():
     session = async_session()
     try:
         yield session
-        await session.rollback()
+        await session.commit()
     finally:
         await session.close()
 
@@ -41,18 +41,20 @@ async def db_session():
 async def fake_user(db_session: AsyncSession):
     "Fixture for creating a seed test user"
     user_data = {"name": "test_user", "password": "pass"}
-    user = await UserDAO.create(db_session, user_data)
+    async with db_session() as session:
+        user = await UserDAO.create(session, user_data)
     yield user
 
 
 @pytest.fixture
-def client():
+async def client():
     "Fixture to return an HTTP client for the fastapi app"
-    yield TestClient(app=app)
+    async with httpx.AsyncClient(app=app, base_url="http://test") as client:
+        yield client
 
 
 @pytest.fixture
-def authed_client(client: TestClient, fake_user: UserDAO):
+async def authed_client(client: httpx.AsyncClient, fake_user: UserDAO):
     """
     Fixture to create an HTTP client that includes
     the Authorization header to authenticate against
@@ -60,7 +62,7 @@ def authed_client(client: TestClient, fake_user: UserDAO):
     """
     auth_header = {"Authorization": f"bearer {fake_user.name}"}
     client.headers.update(auth_header)
-    return client
+    yield client
 
 
 @pytest.fixture(scope="session")
