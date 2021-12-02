@@ -62,7 +62,9 @@ class InMemoryDAO:
         return model
 
     @classmethod
-    async def create(cls, session: MagicMock, api_model: Union[BaseDAO, BaseModel]):
+    async def create(
+        cls, session: MagicMock, api_model: Union[BaseDAO, BaseModel, dict]
+    ):
         return await cls.new(session, api_model)
 
     @classmethod
