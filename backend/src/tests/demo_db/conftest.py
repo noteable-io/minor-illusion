@@ -15,19 +15,13 @@ SYNC_TEST_DB_URL = (
 )
 ASYNC_TEST_DB_URL = "cockroachdb+asyncpg://demo:noteable@localhost:26259/defaultdb"
 
-# sync engine for creating tables
-# async engine for building db_session
 sync_engine = create_engine(SYNC_TEST_DB_URL)
-# async_engine = create_async_engine(ASYNC_TEST_DB_URL)
-# async_session = sessionmaker(
-#     async_engine, class_=AsyncSession, expire_on_commit=False, autocommit=True
-# )
+async_engine = create_async_engine(ASYNC_TEST_DB_URL)
 
 
 @pytest.fixture
 async def engine():
-    engine = create_async_engine(ASYNC_TEST_DB_URL)
-    async with engine.connect() as conn:
+    async with async_engine.connect() as conn:
         await conn.begin()
         await conn.begin_nested()
         yield conn
@@ -38,7 +32,8 @@ async def engine():
 async def db_session(engine):
     @asynccontextmanager
     async def test_db_session():
-        session = AsyncSession(engine, expire_on_commit=False)
+        Session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+        session = Session()
         try:
             yield session
             await session.commit()
