@@ -27,6 +27,7 @@ requests = "^2.26.0"
 black = "^21.11b1"
 isort = "^5.10.1"
 mypy = "^0.910"
+mirakuru = "^2.4.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
