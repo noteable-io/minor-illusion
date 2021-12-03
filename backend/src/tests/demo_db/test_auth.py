@@ -1,3 +1,5 @@
+from typing import AsyncIterator
+
 import pytest
 from app.models import UserDAO
 from fastapi.testclient import TestClient
@@ -8,7 +10,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 @pytest.mark.asyncio
 class TestAuth:
     @pytest.fixture(autouse=True)
-    def patch_auth_file(self, mocker: MockerFixture, db_session: AsyncSession):
+    def patch_auth_file(
+        self, mocker: MockerFixture, db_session: AsyncIterator[AsyncSession]
+    ):
         mocker.patch("app.auth.db_session", db_session)
 
     async def test_unauthenticated(self, client: TestClient):
