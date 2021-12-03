@@ -63,56 +63,17 @@ The same `poetry install` and `.venv` directory creation happens during the `bac
 Unit tests are written with `pytest` in the `backend/src/tests` directory.  They can be run on your localhost directly with poetry (`poetry install; poetry run pytest`), or using `tox`.  Alternatively, you can spin up the backend container and run tests in there (`docker-compose run backend tox`).  Lastly, the `tox` tests are run in Github CI/CD during any PR to the `main` branch.
 
 
-### Backend: Database mocking
+#### Database testing
 
-We use a [Data Access Object (DAO)](https://en.wikipedia.org/wiki/Data_access_object) approach towards creating database models, only querying them through `@classmethod` decorators, in order to easily mock them in testing.  Entirely mocking away database transactions definitely has its shortcomings. One alternative approach is creating an in-memory `sqlite3` database for tests, which may have compatibility differences with Cockroach DB.  Another would be to just stand up a test Cockroach DB instance, although that could add significant latency to running tests.  
+There are several ways to test database interaction in a Python application.  Some common approaches are:  
 
-What does it mean in practice?  Instead of writing `statement = sa.select(...); results = session.execute(statement)` code in CRUD routers, every query action is represented in `models.py` as part of a `DAO` object.  Router code uses syntax like:
+ - Mock out the database entirely
+ - Use an in-memory `sqlite3` database as a stand-in for production
+ - Maintain a persistent test database alongside the production database
 
-```python
-# imaginary crud.py router file
-@app.get('/endpoint/{id}', response_model=ThingOut)
-def endpoint(id: int):
-    with db_session() as session:
-        item = ThingDAO.get(session, id)
-    return item
-```    
+We are able to effectively mock out the database interactions by using a [data access object (DAO)](https://en.wikipedia.org/wiki/Data_access_object) strategy, in which all SQL statement execution is encapsulated in `@classmethod`'s defined in the SQLAlchemy models.  In tests, we can mock those `DAO` classes with `FakeDAO` classes, overriding the appropriate `@classmethod` behavior to return fake data.  This is a good way to test database interactions without actually connecting to a real database.
 
-instead of:
-
-```python
-# imaginary crud.py router file
-@app.get('/endpoint/{id}', response_model=ThingOut)
-def endpoint(id: int):
-    with db_session() as session:
-        statement = sa.select(ThingDAO).where(ThingDAO.id == id)
-        results = session.execute(statement)
-        item = results.scalars().first()
-    return item
-```
-
-To test the endpoint, you'd have to create a `FakeThingDAO` in tests (see `backend/src/tests/fake_models` for examples), and then patch it into your test.  The `FakeDAO` objects use in-memory dictionaries to represent the actual database tables, and any `@classmethod`'s in your actual `DAO` models will need to be re-implemented in the `FakeDAO`'s to mimic the database transaction behavior.
-
-```python
-# imaginary test_crud.py test file
-import pytest
-from unittest.mock import patch
-from .fake_models import FakeThingDAO
-
-@pytest.fixture(autouse=True)
-def patch_thing_dao():
-    with patch("app.crud.ThingDAO", FakeThingDAO):
-        yield
-
-def test_get_endpoint(client):
-    resp = client.get('/endpoint/1')
-    # ^^ since ThingDAO.get is patched to FakeThingDAO.get, 
-    # there is no database transaction.  It's an in-memory
-    # FakeThingDAO.CACHE.get(1) which returns a ThingDAO object
-    # and that can get rendered into a Pydantic validated json response
-    assert resp.status_code == 200
-    assert resp.json() = {...}
-```
+Additionally, CockroachDB offers an ephemeral in-memory deployment option with the `cockroach demo` command, including enterprise license support for limited time.  In this strategy, a pytest fixture begins running the in-memory cockroach database, creates the tables, and patches the `db_session` to have a connection to the test database instead of production.
 
 
 ### Integration Tests

@@ -26,6 +26,12 @@ jobs:
           python -m pip install --upgrade pip setuptools wheel
           python -m pip install --upgrade poetry tox tox-gh-actions
 
+      - name: "Install cockroach"
+        # https://www.cockroachlabs.com/docs/v21.2/install-cockroachdb-linux
+        run: |
+          curl https://binaries.cockroachdb.com/cockroach-v21.2.2.linux-amd64.tgz | tar -xz 
+          sudo cp -i cockroach-v21.2.2.linux-amd64/cockroach /usr/local/bin/
+
       - name: "Run tox"
         run: "python -m tox"
         working-directory: "./backend/src"
