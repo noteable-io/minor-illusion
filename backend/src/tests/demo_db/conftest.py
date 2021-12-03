@@ -12,7 +12,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
-# shell command to launch ephemeral in-memory cockroach db
+# shell command to launch ephemeral *in-memory* cockroach db
 COCKROACH_CMD = """cockroach demo --sql-port 26259 --no-example-database -e 'ALTER USER demo with password "noteable";select pg_sleep(1000)'"""
 
 # these should match with the COCKROACH_CMD values
@@ -44,6 +44,11 @@ def event_loop():
 # The engine handles the SAVEPOINT and ROLLBACK
 # Sessions inside a .begin_nested() block that try to .commit()
 # produce RELEASE SAVEPOINT rather than COMMIT statements
+#
+# Note that patching db_session into route files (e.g. patch('app.auth.db_session', db_session) )
+# will be done in other files, typically with an autouse=True fixture.
+# Since db_session uses the engine prefix, you'll see BEGIN / SAVEPOINT / ROLLBACK
+# messages (if you display stdout) even when there is no database interaction in the actual test
 
 ASYNC_TEST_DB_URL = f"cockroachdb+asyncpg://{TEST_DB_USER}:{TEST_DB_PASS}@{TEST_DB_HOST}:{TEST_DB_PORT}/{TEST_DB_NAME}"
 async_engine = create_async_engine(ASYNC_TEST_DB_URL)
@@ -78,6 +83,8 @@ async def db_session(engine):
 
 
 # 3. Fixture for creating a seed test user
+# This is used in authed_client and also when other tests need
+# to create seed data attached to a user (e.g. Todo tests)
 @pytest.fixture
 async def fake_user(db_session: AsyncIterator[AsyncSession]):
     "Fixture for creating a seed test user"
@@ -132,9 +139,13 @@ def manage_cockroach():
 def create_tables(manage_cockroach):
     # Even though the mirakuru TCPExecutor shows that it can send packets to
     # localhost:26259, it will say that demo/noteable is an invalid password
-    # I think because we're beating a race condition on executing ALTER USER demo with password
+    # I think because we're beating a race condition on executing "ALTER USER demo with password"
     # so retry a few times here.  Typically it works after 5 tries (.5 seconds)
-    # TODO: PR mirakuru to have a PostgresExecutor ?
+    #
+    # TODO: PR mirakuru to have a PostgresExecutor/CockroachExecutor ?
+    # Note there is a pytest-postgresql library that uses mirakuru under the hood
+    # but it overrides .running() to check for the postgres data directory to exist
+    # https://github.com/ClearcodeHQ/pytest-postgresql/blob/main/src/pytest_postgresql/executor.py#L206
     tries = 50
     for i in range(tries):
         try:
@@ -144,4 +155,5 @@ def create_tables(manage_cockroach):
             print(f"retrying connection (#{i})")
             time.sleep(0.1)
     else:
-        print(f"Couldn't create tables after {tries} tries ({tries * 0.1} seconds)")
+        msg = f"Couldn't create tables after {tries} tries ({tries * 0.1} seconds)"
+        raise Exception(msg)
