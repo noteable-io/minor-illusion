@@ -1,5 +1,6 @@
 from typing import AsyncIterator
 
+import httpx
 import pytest
 from app.models import UserDAO
 from fastapi.testclient import TestClient
@@ -15,12 +16,12 @@ class TestAuth:
     ):
         mocker.patch("app.auth.db_session", db_session)
 
-    async def test_unauthenticated(self, client: TestClient):
+    async def test_unauthenticated(self, client: httpx.AsyncClient):
         endpoint = "/me"
         resp = await client.get(endpoint)
         assert resp.status_code == 401
 
-    async def test_login(self, client: TestClient, fake_user: UserDAO):
+    async def test_login(self, client: httpx.AsyncClient, fake_user: UserDAO):
         endpoint = "/auth/login"
         data = {"username": fake_user.name, "password": fake_user.password}
         resp = await client.post(endpoint, data=data)
@@ -35,14 +36,16 @@ class TestAuth:
         assert resp.status_code == 200
         assert resp.json()["name"] == "test_user"
 
-    async def test_invalid_password(self, client: TestClient, fake_user: UserDAO):
+    async def test_invalid_password(
+        self, client: httpx.AsyncClient, fake_user: UserDAO
+    ):
         endpoint = "/auth/login"
         data = {"username": fake_user.name, "password": fake_user.password + "invalid"}
         resp = await client.post(endpoint, data=data)
         assert resp.status_code == 403
         assert resp.json() == {"detail": "Incorrect password"}
 
-    async def test_user_does_not_exist(self, client: TestClient):
+    async def test_user_does_not_exist(self, client: httpx.AsyncClient):
         endpoint = "/auth/login"
         data = {"username": "missing", "password": "missing"}
         resp = await client.post(endpoint, data=data)

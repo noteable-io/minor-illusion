@@ -70,7 +70,7 @@ async def db_session(engine):
     # If we passed db_session into functions as FastAPI dependency injection
     # then this would look different (and probably cleaner)
     @asynccontextmanager
-    async def test_db_session() -> AsyncIterator[AsyncSession]:
+    async def test_db_session():
         Session = sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
         session = Session()
         try:

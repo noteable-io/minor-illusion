@@ -1,9 +1,9 @@
 import uuid
 from typing import AsyncIterator
 
+import httpx
 import pytest
 from app.models import TodoDAO, UserDAO
-from fastapi.testclient import TestClient
 from pytest_mock import MockerFixture
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -52,7 +52,7 @@ class TestCrud:
                 await TodoDAO.create(session, todo)
         yield
 
-    async def test_create_todo(self, authed_client: TestClient):
+    async def test_create_todo(self, authed_client: httpx.AsyncClient):
         # User should have no todos to start
         resp = await authed_client.get("/todo")
         assert len(resp.json()) == 0
@@ -66,7 +66,7 @@ class TestCrud:
         resp = await authed_client.get("/todo")
         assert len(resp.json()) == 1
 
-    async def test_invalid_create_todo(self, authed_client: TestClient):
+    async def test_invalid_create_todo(self, authed_client: httpx.AsyncClient):
         data = {"foo": "bar"}
         resp = await authed_client.post("/todo/", json=data)
         assert resp.status_code == 422
@@ -85,12 +85,16 @@ class TestCrud:
             ]
         }
 
-    async def test_get_all_todos(self, authed_client: TestClient, seed_todos: None):
+    async def test_get_all_todos(
+        self, authed_client: httpx.AsyncClient, seed_todos: None
+    ):
         resp = await authed_client.get("/todo")
         assert resp.status_code == 200
         assert len(resp.json()) == 3
 
-    async def test_get_todo_by_id(self, authed_client: TestClient, seed_todos: None):
+    async def test_get_todo_by_id(
+        self, authed_client: httpx.AsyncClient, seed_todos: None
+    ):
         resp = await authed_client.get(f"/todo/{uuid.UUID(int=1)}")
         assert resp.status_code == 200
         js = resp.json()
@@ -98,12 +102,16 @@ class TestCrud:
         assert js["title"] == "1"
         assert js["content"] == "foo"
 
-    async def test_get_todo_by_id_does_not_exist(self, authed_client: TestClient):
+    async def test_get_todo_by_id_does_not_exist(
+        self, authed_client: httpx.AsyncClient
+    ):
         resp = await authed_client.get(f"/todo/{uuid.UUID(int=4)}")
         assert resp.status_code == 404
         assert resp.json() == {"detail": "Todo not found"}
 
-    async def test_update_todo(self, authed_client: TestClient, seed_todos: None):
+    async def test_update_todo(
+        self, authed_client: httpx.AsyncClient, seed_todos: None
+    ):
         endpoint = f"/todo/{uuid.UUID(int=1)}"
         data = {"title": "new title", "content": "new content"}
         # a PUT to /todo/{id} should return the new values
@@ -122,7 +130,9 @@ class TestCrud:
         assert js["title"] == "new title"
         assert js["content"] == "new content"
 
-    async def test_delete_todo(self, authed_client: TestClient, seed_todos: None):
+    async def test_delete_todo(
+        self, authed_client: httpx.AsyncClient, seed_todos: None
+    ):
         endpoint = f"/todo/{uuid.UUID(int=1)}"
         resp = await authed_client.get(endpoint)
         assert resp.status_code == 200
