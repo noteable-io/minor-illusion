@@ -63,88 +63,17 @@ The same `poetry install` and `.venv` directory creation happens during the `bac
 Unit tests are written with `pytest` in the `backend/src/tests` directory.  They can be run on your localhost directly with poetry (`poetry install; poetry run pytest`), or using `tox`.  Alternatively, you can spin up the backend container and run tests in there (`docker-compose run backend tox`).  Lastly, the `tox` tests are run in Github CI/CD during any PR to the `main` branch.
 
 
-### Backend: Database mocking
+#### Database testing
 
 There are several ways to test database interaction in a Python application.  Some common approaches are:  
 
  - Mock out the database entirely
  - Use an in-memory `sqlite3` database as a stand-in for production
- - Create a test database with your same production stack
+ - Maintain a persistent test database alongside the production database
 
-We rely heavily on the first option.  One benefit to mocking out the actual database queries is that tests run really fast.  However it does risk missing coverage on critical real-world behavior.  To mock out database interactions, we use a [Data Access Object (DAO)](https://en.wikipedia.org/wiki/Data_access_object) approach towards creating database models.
+We are able to effectively mock out the database interactions by using a [data access object (DAO)](https://en.wikipedia.org/wiki/Data_access_object) strategy, in which all SQL statement execution is encapsulated in `@classmethod`'s defined in the SQLAlchemy models.  In tests, we can mock those `DAO` classes with `FakeDAO` classes, overriding the appropriate `@classmethod` behavior to return fake data.  This is a good way to test database interactions without actually connecting to a real database.
 
-All interactions with the database are encapsulated in `@classmethod` methods on `DAO` classes.  There are no statements or `session.execute` written in places like `crud.py` or `auth.py`.  By structuring the code this way, we can create `FakeDAO` objects for testing that override those same `@classmethod` and store real sqlalchemy `DAO` objects in memory, just not transacting with a database.
-
-A very brief and incomplete glimpse of what it looks like in practice is below, imports excluded for brevity.  See the relevant files in `backend/src/app` and `backend/src/tests` for more details and comments.
-
-```python
-# models.py
-class ThingDAO:
-    name = sa.Column(sa.String)
-
-    @classmethod
-    async def get_thing_by_name(cls, session: AsyncSession, name: str):
-        statement = sa.select(cls).where(cls.name == name)
-        results = await session.execute(statement)
-        thing = results.scalars().one_or_none()
-        return thing
-```
-
-```python
-# route.py
-class ThingOut(BaseModel):
-    name: str
-
-@app.get('/thing/{name}', response_model=ThingOut)
-def get_thing(name: str):
-    async with db_session() as session:
-        thing = await ThingDAO.get_thing_by_name(session, name)
-    return thing
-```
-
-In order to test the route, we would then create a `FakeThingDAO` and patch that in during testing.
-
-```python
-# tests/fake_models.py
-class FakeThingDAO:
-    # CACHE structure is {mock_session: {model.id: model}}
-    CACHE = collections.defaultdict(dict)
-    dao_cls = ThingDAO
-
-    @classmethod
-    async def create(cls, mock_session: MagicMock, model: ThingDAO):
-        cls.CACHE[mock_session][model.id] = model
-        return model
-
-    @classmethod
-    async def get_thing_by_name(cls, mock_session: MagicMock, name: str):
-        # equivalent to .where(cls.name==name).one_or_none()
-        # cls.CACHE[mock_session].values() is basically the same as a db table
-        matches = [item for item in cls.CACHE[mock_session].values() if item.name == name]
-        if matches:
-            return matches[0]
-```
-
-```python
-# tests/routes.py
-@pytest.fixture(autouse=True)
-def patch_route(mocker: MockerFixture, db_session: MagicMock):
-    mocker.patch('routes.db_session', db_session)
-    mocker.patch('routes.ThingDAO', FakeThingDAO)
-
-@pytest.fixture
-async def make_thing(db_session: MagicMock):
-    test_seed_thing = ThingDAO(name='foo')
-    await FakeThingDAO.create(db_session, test_seed_thing)
-    yield
-    # clean up, roughly equivalent to a transactional rollback
-    FakeThingDAO.CACHE.pop(db_session)
-
-def test_get_thing(client: TestClient, make_thing: None):
-    resp = client.get('/thing/foo')
-    assert resp.status_code == 200
-    assert resp.json() == {'name': 'foo'}
-```
+Additionally, CockroachDB offers an ephemeral in-memory deployment option with the `cockroach demo` command, including enterprise license support for limited time.  In this strategy, a pytest fixture begins running the in-memory cockroach database, creates the tables, and patches the `db_session` to have a connection to the test database instead of production.
 
 
 ### Integration Tests
