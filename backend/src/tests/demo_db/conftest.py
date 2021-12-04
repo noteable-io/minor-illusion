@@ -1,7 +1,7 @@
 import asyncio
 import time
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
+from typing import AsyncContextManager, AsyncIterator, Callable
 
 import httpx
 import mirakuru
@@ -9,7 +9,7 @@ import pytest
 from app.main import app
 from app.models import BaseDAO, UserDAO
 from sqlalchemy import create_engine
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 # shell command to launch ephemeral *in-memory* cockroach db
@@ -64,7 +64,7 @@ async def engine():
 
 
 @pytest.fixture
-async def db_session(engine):
+async def db_session(engine: AsyncConnection):
     # Need to put this async context manager definition inside the fixture
     # in order to have access to the engine
     # If we passed db_session into functions as FastAPI dependency injection
@@ -86,7 +86,7 @@ async def db_session(engine):
 # This is used in authed_client and also when other tests need
 # to create seed data attached to a user (e.g. Todo tests)
 @pytest.fixture
-async def fake_user(db_session: AsyncIterator[AsyncSession]):
+async def fake_user(db_session: Callable[[], AsyncContextManager[AsyncSession]]):
     "Fixture for creating a seed test user"
     user_data = {"name": "test_user", "password": "pass"}
     async with db_session() as session:
@@ -154,6 +154,3 @@ def create_tables(manage_cockroach):
         except:
             print(f"retrying connection (#{i})")
             time.sleep(0.1)
-    else:
-        msg = f"Couldn't create tables after {tries} tries ({tries * 0.1} seconds)"
-        raise Exception(msg)

@@ -1,9 +1,8 @@
-from typing import AsyncIterator
+from typing import AsyncContextManager, Callable
 
 import httpx
 import pytest
 from app.models import UserDAO
-from fastapi.testclient import TestClient
 from pytest_mock import MockerFixture
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,7 +11,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 class TestAuth:
     @pytest.fixture(autouse=True)
     def patch_auth_file(
-        self, mocker: MockerFixture, db_session: AsyncIterator[AsyncSession]
+        self,
+        mocker: MockerFixture,
+        db_session: Callable[[], AsyncContextManager[AsyncSession]],
     ):
         mocker.patch("app.auth.db_session", db_session)
 

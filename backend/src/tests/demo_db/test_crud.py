@@ -1,5 +1,5 @@
 import uuid
-from typing import AsyncIterator
+from typing import AsyncContextManager, Callable
 
 import httpx
 import pytest
@@ -12,19 +12,25 @@ from sqlalchemy.ext.asyncio import AsyncSession
 class TestCrud:
     @pytest.fixture(autouse=True)
     def patch_auth_file(
-        self, mocker: MockerFixture, db_session: AsyncIterator[AsyncSession]
+        self,
+        mocker: MockerFixture,
+        db_session: Callable[[], AsyncContextManager[AsyncSession]],
     ):
         mocker.patch("app.auth.db_session", db_session)
 
     @pytest.fixture(autouse=True)
     def patch_crud_file(
-        self, mocker: MockerFixture, db_session: AsyncIterator[AsyncSession]
+        self,
+        mocker: MockerFixture,
+        db_session: Callable[[], AsyncContextManager[AsyncSession]],
     ):
         mocker.patch("app.crud.db_session", db_session)
 
     @pytest.fixture
     async def seed_todos(
-        self, db_session: AsyncIterator[AsyncSession], fake_user: UserDAO
+        self,
+        db_session: Callable[[], AsyncContextManager[AsyncSession]],
+        fake_user: UserDAO,
     ):
         # Create some fake seed Todo data for our fake test_user
         todos = [
