@@ -8,7 +8,7 @@
 
 *Fun fact: all backend repos at Noteable are named after DnD spells because lead backend engineer @nicholaswold made a joke one time and CTO @MSeal ran with it*
 
-[![backend](https://github.com/noteable-io/minor-illusion/actions/workflows/backend-tests.yaml/badge.svg)](https://github.com/noteable-io/minor-illusion/actions/workflows/backend-tests.yaml)
+[![backend](https://github.com/noteable-io/minor-illusion/actions/workflows/backend-tests.yaml/badge.svg)](https://github.com/noteable-io/minor-illusion/actions/workflows/backend-tests.yaml) [![Docs](https://github.com/noteable-io/minor-illusion/actions/workflows/publish-docs.yaml/badge.svg)](https://noteable-io.github.io/minor-illusion/)
 
 This is a toy `Todo` application that uses some of the same frameworks as our production code.  For the Noteable engineering team, it may be useful for demonstrating fundamental concepts, onboarding, or reproducing minimal errors.  It's worth noting that DevOps is not represented here, this repo uses `docker-compose` for convenience over standing up a local kubernetes cluster.  For anyone interested in Noteable, here's a peek into the stack you would be working with:
 
@@ -35,7 +35,7 @@ This is a toy `Todo` application that uses some of the same frameworks as our pr
     * [Next.js](https://nextjs.org/)
 
   * Docs:
-    * [mkdocs](https://www.mkdocs.org/)
+    * [mkdocs](https://www.mkdocs.org/) for our [full docs](https://noteable-io.github.io/minor-illusion/)
   
 
 ## Run
