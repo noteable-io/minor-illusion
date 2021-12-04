@@ -36,6 +36,13 @@ services:
       - ./frontend/minor-illusion/public:/app/public
       - ./frontend/minor-illusion/package.json:/app/package.json
       - ./frontend/minor-illusion/yarn.lock:/app/yarn.lock
+
+  docs:
+    build: ./docs
+    ports:
+      - 8001:8000
+    volumes:
+      - ./docs/mkdocs:/usr/src/mkdocs
       
 
 
