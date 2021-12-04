@@ -35,7 +35,7 @@ This is a toy `Todo` application that uses some of the same frameworks as our pr
     * [Next.js](https://nextjs.org/)
 
   * Docs:
-    * [mkdocs](https://www.mkdocs.org/) for our [full docs](https://noteable-io.github.io/minor-illusion/)
+    * [mkdocs](https://www.mkdocs.org/)
   
 
 ## Run
@@ -50,3 +50,6 @@ There are four services that will start up:
 
 *The backend app will not be accessible until after Cockroach DB is online, accepting connections, and has gone through Alembic migrations.  Expect a 30-60 second delay between containers starting and being able to access `http://localhost:8000/docs`.  If the backend has a timeout error, try `docker-compose up -d backend` once the cockroach DB says it is accepting connections.*
 
+## Docs
+
+See [more documentation](https://noteable-io.github.io/minor-illusion/) created with `mkdocs` and hosted on Github pages, published through Github Actions.

@@ -1,7 +1,5 @@
 # Minor-Illusion
 
-[minor-illusion](https://github.com/noteable-io/minor-illusion) is an attempt to create a minimal "Todo" web-app that roughly approximates the stack used in the production [Noteable](https://noteable.io/) application.  The three primary goals of this project are:
-
 1. Demonstrating how various frameworks fit together to assist onboarding new developers at Noteable
 2. Offering a place to prototype and experiment with large systemic changes, such as upgrading database interactions to be asynchronous
 3. Providing example code style and framework choices to job candidates, and possibly as a tool for exploring concepts during interview sessions
