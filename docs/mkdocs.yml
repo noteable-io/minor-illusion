@@ -1,0 +1,6 @@
+site_name: Minor-Illusion
+
+nav:
+  - index.md
+  - backend.md
+      
