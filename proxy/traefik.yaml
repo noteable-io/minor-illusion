@@ -1,0 +1,19 @@
+# Static configuration for Traefik
+# https://doc.traefik.io/traefik/getting-started/configuration-overview/#the-static-configuration
+
+entryPoints:
+  web:
+    address: ":5000"
+
+api:
+  dashboard: true
+  insecure: true
+
+providers:
+  file:
+    directory: /etc/traefik/dynamic
+
+logs:
+  level: DEBUG
+
+accessLog: {}
