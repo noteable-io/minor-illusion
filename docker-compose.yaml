@@ -1,16 +1,37 @@
 version: '3.8'
 
 services:
-  backend:
+  backend1:
     build: ./backend
     ports:
-      - 5678:5678 # to attach debug
-      - 8000:8000 # actual webapp
+      - 5678:5678
     volumes:
       - ./backend/src/app:/usr/src/app
       - ./backend/src/tests:/usr/src/tests
       - ./backend/src/migrations/versions:/usr/src/migrations/versions
+    environment:
+      ROOT_PATH: "/api"
+      RUN_ALEMBIC: 1
+    restart: always
 
+  backend2:
+    build: ./backend
+    volumes:
+      - ./backend/src/app:/usr/src/app
+      - ./backend/src/tests:/usr/src/tests
+      - ./backend/src/migrations/versions:/usr/src/migrations/versions
+    environment:
+      ROOT_PATH: "/api"
+    restart: always
+
+  proxy:
+    image: traefik:latest
+    volumes:
+      - ./proxy:/etc/traefik
+    ports:
+      - 5000:5000
+      - 8080:8080
+    
   cockroach:
     image: cockroachdb/cockroach-unstable:v21.2.0-beta.4
     command: start-single-node --insecure --listen-addr=0.0.0.0:26257
@@ -27,8 +48,6 @@ services:
 
   frontend:
     build: ./frontend
-    ports:
-      - 3000:3000
     volumes:
       # I'd love to just mount ./frontend/minor-illusion:/app
       # but it is volume hell with node_modules and .next directories

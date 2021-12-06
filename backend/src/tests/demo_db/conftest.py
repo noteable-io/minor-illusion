@@ -13,7 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, create_async_e
 from sqlalchemy.orm import sessionmaker
 
 # shell command to launch ephemeral *in-memory* cockroach db
-COCKROACH_CMD = """cockroach demo --sql-port 26259 --no-example-database -e 'ALTER USER demo with password "noteable";select pg_sleep(1000)'"""
+COCKROACH_CMD = """cockroach demo --sql-port 26259 --http-port 8001 --no-example-database -e 'ALTER USER demo with password "noteable";select pg_sleep(1000)'"""
 
 # these should match with the COCKROACH_CMD values
 TEST_DB_USER = "demo"

@@ -1,0 +1,22 @@
+http:
+  routers:
+    backend:
+      rule: "PathPrefix(`/api`)"
+      service: backend-service
+      entryPoints:
+        - web
+      middlewares:
+        - strip-api-prefix
+
+  services: 
+    backend-service:
+      loadBalancer:
+        servers:
+          - url: "http://backend1:8000/"
+          - url: "http://backend2:8000/"
+
+  middlewares:  
+    strip-api-prefix:
+      stripPrefix:
+        prefixes:
+          - "/api"

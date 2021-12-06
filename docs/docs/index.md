@@ -6,7 +6,7 @@
 
 **The stack**
 
-* Backend:
+  * Backend:
     * [Hypercorn](https://pgjones.gitlab.io/hypercorn/) for the [ASGI](https://asgi.readthedocs.io/en/latest/) server
     * [FastAPI](https://fastapi.tiangolo.com/) for the web framework
     * [Pydantic](https://pydantic-docs.helpmanual.io/) for data validation
@@ -30,3 +30,6 @@
 
   * Docs:
     * [mkdocs](https://www.mkdocs.org/)
+
+  * Reverse-Proxy:
+    * [Traefik](https://traefik.io/) for reverse-proxy and load-balancing between backend instances
