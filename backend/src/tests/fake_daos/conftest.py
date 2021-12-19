@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock
 
 import pytest
+from app.auth import create_token
 from app.main import app
 from app.models import UserDAO
 from fastapi.testclient import TestClient
@@ -46,6 +47,7 @@ def authed_client(client: TestClient, fake_user: UserDAO):
     the Authorization header to authenticate against
     FastAPI endpoints, using the "test_user" credentials
     """
-    auth_header = {"Authorization": f"bearer {fake_user.name}"}
+    token = create_token(fake_user.name)
+    auth_header = {"Authorization": f"{token['token_type']} {token['access_token']}"}
     client.headers.update(auth_header)
-    return client
+    yield client

@@ -1,15 +1,17 @@
 import asyncio
 import time
 from contextlib import asynccontextmanager
-from typing import AsyncContextManager, AsyncIterator, Callable
+from typing import AsyncContextManager, Callable
 
 import httpx
 import mirakuru
 import pytest
+from app.auth import create_token
 from app.main import app
 from app.models import BaseDAO, UserDAO
 from sqlalchemy import create_engine
-from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, create_async_engine
+from sqlalchemy.ext.asyncio import (AsyncConnection, AsyncSession,
+                                    create_async_engine)
 from sqlalchemy.orm import sessionmaker
 
 # shell command to launch ephemeral *in-memory* cockroach db
@@ -112,7 +114,8 @@ async def authed_client(client: httpx.AsyncClient, fake_user: UserDAO):
     the Authorization header to authenticate against
     FastAPI endpoints, using the "test_user" credentials
     """
-    auth_header = {"Authorization": f"bearer {fake_user.name}"}
+    token = create_token(fake_user.name)
+    auth_header = {"Authorization": f"{token['token_type']} {token['access_token']}"}
     client.headers.update(auth_header)
     yield client
 

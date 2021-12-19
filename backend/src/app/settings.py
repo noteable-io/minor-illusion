@@ -1,3 +1,4 @@
+import secrets
 from functools import lru_cache
 from typing import Optional
 
@@ -9,6 +10,7 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     LOGS_AS_JSON: bool = False
     ROOT_PATH: Optional[str] = None
+    SECRET_KEY: str = secrets.token_urlsafe(32)
 
 
 @lru_cache
