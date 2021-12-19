@@ -7,11 +7,12 @@ import httpx
 import mirakuru
 import pytest
 from app.auth import create_token
-from app.main import app
+from app.main import build_app
 from app.models import BaseDAO, UserDAO
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
-from sqlalchemy.ext.asyncio import (AsyncConnection, AsyncSession,
-                                    create_async_engine)
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncSession, create_async_engine
 from sqlalchemy.orm import sessionmaker
 
 # shell command to launch ephemeral *in-memory* cockroach db
@@ -99,7 +100,13 @@ async def fake_user(db_session: Callable[[], AsyncContextManager[AsyncSession]])
 # 4. httpx.AsyncClient and a second version that has the Authorization header
 # already set up to be logged in as the test user
 @pytest.fixture
-async def client():
+def app() -> FastAPI:
+    "Return app.main.build_app(), the main entrypoint to the FastAPI app"
+    return build_app()
+
+
+@pytest.fixture
+async def client(app: FastAPI):
     "Fixture to return an HTTP client for the fastapi app"
     async with httpx.AsyncClient(
         app=app, base_url="http://test", follow_redirects=True
@@ -108,16 +115,29 @@ async def client():
 
 
 @pytest.fixture
-async def authed_client(client: httpx.AsyncClient, fake_user: UserDAO):
+def auth_token(fake_user: UserDAO):
+    "Fixture to return a JWT token for the fake user"
+    return create_token(fake_user.name)
+
+
+@pytest.fixture
+async def authed_client(client: httpx.AsyncClient, auth_token: str):
     """
     Fixture to create an HTTP client that includes
     the Authorization header to authenticate against
     FastAPI endpoints, using the "test_user" credentials
     """
-    token = create_token(fake_user.name)
-    auth_header = {"Authorization": f"{token['token_type']} {token['access_token']}"}
+    auth_header = {"Authorization": f"Bearer {auth_token}"}
     client.headers.update(auth_header)
     yield client
+
+
+# 4b. Websocket client
+@pytest.fixture
+def ws_client(app):
+    fastapi_test_client = TestClient(app=app)
+    with fastapi_test_client.websocket_connect("/rtu") as ws:
+        yield ws
 
 
 # 5. Start in-memory cockroach database and create the tables
