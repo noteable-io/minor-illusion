@@ -24,13 +24,13 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
     if not db_user.password == form_data.password:
         raise HTTPException(status.HTTP_403_FORBIDDEN, detail="Incorrect password")
     # delegate token creation partly to make testing easier
-    return create_token(db_user.name)
+    jwt_token = create_token(db_user.name)
+    return {"access_token": jwt_token, "token_type": "bearer"}
 
 
 def create_token(username: str):
     "Create a JWT token for the given username"
-    encoded_key = jwt.encode({"user": username}, SECRET_KEY, algorithm=ALGORITHM)
-    return {"access_token": encoded_key, "token_type": "bearer"}
+    return jwt.encode({"user": username}, SECRET_KEY, algorithm=ALGORITHM)
 
 
 async def get_user(token: str = Depends(oauth2_scheme)):
