@@ -7,13 +7,24 @@ from app.auth import router as AuthRouter
 from app.crud import router as CrudRouter
 from app.log_utils import setup_logging
 from app.models import UserDAO
+from app.rtu import router as RtuRouter
 from app.schemas import UserOut
 from app.settings import get_settings
 
 setup_logging()
-app = FastAPI(root_path=get_settings().ROOT_PATH)
-app.include_router(AuthRouter)
-app.include_router(CrudRouter)
+
+
+def build_app() -> FastAPI:
+    "Builds the minor-illusion FastAPI application"
+    # this is encapsulated in a function to assist with testing
+    app = FastAPI(root_path=get_settings().ROOT_PATH)
+    app.include_router(AuthRouter)
+    app.include_router(CrudRouter)
+    app.include_router(RtuRouter)
+    return app
+
+
+app = build_app()
 
 
 @app.get("/me", response_model=UserOut)
