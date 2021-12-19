@@ -13,7 +13,7 @@ httpx
 psycopg2-binary
 pydantic
 sqlalchemy
-git+https://github.com/gordthompson/sqlalchemy-cockroachdb.git@pr20211117a
+sqlalchemy-cockroach
 structlog
 
 
