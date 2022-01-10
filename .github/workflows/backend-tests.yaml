@@ -28,10 +28,17 @@ jobs:
       - name: "Install cockroach"
         # https://www.cockroachlabs.com/docs/v21.2/install-cockroachdb-linux
         run: |
-          curl https://binaries.cockroachdb.com/cockroach-v21.2.2.linux-amd64.tgz | tar -xz 
+          curl https://binaries.cockroachdb.com/cockroach-v21.2.2.linux-amd64.tgz | tar -xz
           sudo cp -i cockroach-v21.2.2.linux-amd64/cockroach /usr/local/bin/
 
-      - name: "Run tox"
+      - name: "Start test services"
+        run: "run-test-services.sh"
+        working-directory: "./backend/src/scripts"
+
+
+      - name: "Run tests"
         run: "python -m tox"
         working-directory: "./backend/src"
-        
+        env:
+          TEST_CRDB_DETAILS: "/tmp/crdb.json"
+
