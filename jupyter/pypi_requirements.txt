@@ -1,16 +1,13 @@
 # general nice-to-have jupyter stuff
 jupyter-contrib-nbextensions
 ipywidgets
-pandas
 nb_black
 isort
 retrolab
 rich
 
 # Exploring the test app and database
-asyncpg
 httpx
-psycopg2-binary
 pydantic
 sqlalchemy
 sqlalchemy-cockroachdb
