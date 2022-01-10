@@ -1,28 +1,23 @@
-import os
+from fastapi import FastAPI
 
-from fastapi import Depends, FastAPI
-
-from app.auth import get_user
 from app.auth import router as AuthRouter
 from app.crud import router as CrudRouter
+from app.debug import router as DebugRouter
 from app.log_utils import setup_logging
-from app.models import UserDAO
-from app.schemas import UserOut
 from app.settings import get_settings
 
 setup_logging()
-app = FastAPI(root_path=get_settings().ROOT_PATH)
-app.include_router(AuthRouter)
-app.include_router(CrudRouter)
 
 
-@app.get("/me", response_model=UserOut)
-def me(user: UserDAO = Depends(get_user)):
-    return user
+def build_app() -> FastAPI:
+    "Builds the minor-illusion FastAPI application"
+    # this is encapsulated in a function to facilitate testing
+    settings = get_settings()
+    app = FastAPI(root_path=settings.ROOT_PATH)
+    app.include_router(AuthRouter)
+    app.include_router(CrudRouter)
+    app.include_router(DebugRouter)
+    return app
 
 
-# Useful for seeing which backend your browser is connected to
-# when multiple backends are running behind load-balancer.
-@app.get("/host")
-def environ():
-    return os.environ.get("HOSTNAME")
+app = build_app()
