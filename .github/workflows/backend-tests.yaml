@@ -32,7 +32,7 @@ jobs:
           sudo cp -i cockroach-v21.2.2.linux-amd64/cockroach /usr/local/bin/
 
       - name: "Start test services"
-        run: "./scripts/run-test-services.sh"
+        run: "./scripts/run-test-services.sh &"
         working-directory: "./backend/src"
 
 
