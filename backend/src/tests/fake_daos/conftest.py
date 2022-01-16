@@ -48,6 +48,6 @@ def authed_client(client: TestClient, fake_user: UserDAO):
     FastAPI endpoints, using the "test_user" credentials
     """
     token = create_token(fake_user.name)
-    auth_header = {"Authorization": f"{token['token_type']} {token['access_token']}"}
+    auth_header = {"Authorization": f"bearer {token}"}
     client.headers.update(auth_header)
     yield client

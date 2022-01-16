@@ -1,30 +1,13 @@
-from typing import AsyncContextManager, Callable
-
 import httpx
 import pytest
 from app.models import UserDAO
-from pytest_mock import MockerFixture
-from sqlalchemy.ext.asyncio import AsyncSession
 
 
 @pytest.mark.asyncio
 class TestAuth:
-    @pytest.fixture(autouse=True)
-    def patch_auth_file(
-        self,
-        mocker: MockerFixture,
-        db_session: Callable[[], AsyncContextManager[AsyncSession]],
-    ):
-        mocker.patch("app.auth.db_session", db_session)
-
-    async def test_unauthenticated(self, client: httpx.AsyncClient):
-        endpoint = "/me"
-        resp = await client.get(endpoint)
-        assert resp.status_code == 401
-
-    async def test_login(self, client: httpx.AsyncClient, fake_user: UserDAO):
+    async def test_login(self, client: httpx.AsyncClient, tmp_user: UserDAO):
         endpoint = "/auth/login"
-        data = {"username": fake_user.name, "password": fake_user.password}
+        data = {"username": tmp_user.name, "password": tmp_user.password}
         resp = await client.post(endpoint, data=data)
         assert resp.status_code == 200
 
@@ -35,13 +18,16 @@ class TestAuth:
         endpoint = "/me"
         resp = await client.get(endpoint, headers=auth_header)
         assert resp.status_code == 200
-        assert resp.json()["name"] == "test_user"
+        assert resp.json()["name"] == tmp_user.name
 
-    async def test_invalid_password(
-        self, client: httpx.AsyncClient, fake_user: UserDAO
-    ):
+    async def test_unauthenticated(self, client: httpx.AsyncClient):
+        endpoint = "/me"
+        resp = await client.get(endpoint)
+        assert resp.status_code == 401
+
+    async def test_invalid_password(self, client: httpx.AsyncClient, tmp_user: UserDAO):
         endpoint = "/auth/login"
-        data = {"username": fake_user.name, "password": fake_user.password + "invalid"}
+        data = {"username": tmp_user.name, "password": tmp_user.password + "invalid"}
         resp = await client.post(endpoint, data=data)
         assert resp.status_code == 403
         assert resp.json() == {"detail": "Incorrect password"}
