@@ -1,0 +1,48 @@
+repos:
+  # https://github.com/pre-commit/pre-commit-hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.1.0
+    hooks:
+      - id: trailing-whitespace
+      - id: check-yaml
+
+  # https://black.readthedocs.io/en/stable/integrations/source_version_control.html
+  - repo: https://github.com/psf/black
+    rev: 21.12b0
+    hooks:
+      - id: black
+
+  # https://pycqa.github.io/isort/docs/configuration/pre-commit.html
+  # The [tool.isort] `src_paths` section in backend/src/pyproject.toml is also necessary when
+  # working in this monorepo, otherwise isort thinks app is a third-party-module (?)
+  # and re-orders imports in the wrong pattern
+  - repo: https://github.com/pycqa/isort
+    rev: 5.10.1
+    hooks:
+      - id: isort
+        args: [--profile, black]
+
+  # https://flake8.pycqa.org/en/latest/user/using-hooks.html
+  # https://stackoverflow.com/questions/66482664/pre-commit-flake8-with-setup-cfg-in-subfolder
+  - repo: https://github.com/pycqa/flake8
+    rev: 4.0.1
+    hooks:
+    - id: flake8
+      additional_dependencies: [flake8-docstrings]
+      args: [--config, backend/src/setup.cfg]
+
+  # Make docstrings use triple-quotes (PEP 257)
+  # https://github.com/myint/docformatter#git-hook
+  - repo: https://github.com/myint/docformatter
+    rev: v1.4
+    hooks:
+      - id: docformatter
+        args: [--in-place]
+
+  # Remove unused imports and unused variables
+  # https://github.com/myint/autoflake
+  - repo: https://github.com/myint/autoflake
+    rev: v1.4
+    hooks:
+      - id: autoflake
+        args: [--in-place, --remove-unused-variables, --remove-all-unused-imports]

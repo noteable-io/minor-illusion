@@ -3,10 +3,10 @@ http:
     frontend:
       rule: "PathPrefix(`/`)"
       service: frontend-service
-      entryPoints:  
+      entryPoints:
         - web
 
-  services: 
+  services:
     frontend-service:
       loadBalancer:
         servers:

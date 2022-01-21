@@ -2,12 +2,12 @@ import asyncio
 from logging.config import fileConfig
 
 from alembic import context
+from sqlalchemy import engine_from_config, pool
+from sqlalchemy.ext.asyncio import AsyncEngine
 
 # All app's models live in app.models, so nothing else to import.
 from app.models import BaseDAO
 from app.settings import get_settings
-from sqlalchemy import engine_from_config, pool
-from sqlalchemy.ext.asyncio import AsyncEngine
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -43,7 +43,6 @@ def run_migrations_offline():
 
     Calls to context.execute() here emit the given string to the
     script output.
-
     """
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
@@ -68,9 +67,8 @@ def do_run_migrations(connection):
 async def run_migrations_online():
     """Run migrations in 'online' mode.
 
-    In this scenario we need to create an Engine
-    and associate a connection with the context.
-
+    In this scenario we need to create an Engine and associate a
+    connection with the context.
     """
     connectable = AsyncEngine(
         engine_from_config(

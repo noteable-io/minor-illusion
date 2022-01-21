@@ -1,12 +1,12 @@
-import collections
 import uuid
 from datetime import datetime, timezone
 from typing import Dict, Union
 from unittest.mock import MagicMock
 
 import sqlalchemy as sa
-from app.models import BaseDAO, TodoDAO, UserDAO
 from pydantic import BaseModel
+
+from app.models import BaseDAO, TodoDAO, UserDAO
 
 
 def get_sa_model_defaults(DAO):
@@ -20,9 +20,7 @@ def get_sa_model_defaults(DAO):
                 if isinstance(c.default.arg, sa.sql.functions.now):
                     defaults[c.name] = datetime.now(timezone.utc)
                 else:
-                    raise Exception(
-                        "Unsupported default value: {}".format(c.default.arg)
-                    )
+                    raise Exception("Unsupported default value: {}".format(c.default.arg))
     return defaults
 
 
@@ -62,9 +60,7 @@ class InMemoryDAO:
         return model
 
     @classmethod
-    async def create(
-        cls, session: MagicMock, api_model: Union[BaseDAO, BaseModel, dict]
-    ):
+    async def create(cls, session: MagicMock, api_model: Union[BaseDAO, BaseModel, dict]):
         return await cls.new(session, api_model)
 
     @classmethod

@@ -1,8 +1,8 @@
 # Minor Illusion
 
-> You create a sound or an image of an object 
+> You create a sound or an image of an object
 > within range that lasts for the duration.
-> 
+>
 > If you create an image of an object
 > it must be no larger than a 5-foot cube.
 
@@ -24,9 +24,9 @@ This is a toy `Todo` application that uses some of the same frameworks and conce
     * [Poetry](https://python-poetry.org/) for package management
     * [Pytest](https://docs.pytest.org/) for writing tests
     * [tox](https://tox.wiki/en/latest/index.html) for running tests
-    
+
   * Database:
-    * [CockroachDB](https://www.cockroachlabs.com/) 
+    * [CockroachDB](https://www.cockroachlabs.com/)
 
   * Prototyping, exploration, and integration tests:
     * [Jupyter](https://jupyter-docker-stacks.readthedocs.io/en/latest/)
@@ -39,7 +39,7 @@ This is a toy `Todo` application that uses some of the same frameworks and conce
 
   * Reverse-Proxy:
     * [Traefik](https://traefik.io/) for reverse-proxy and load-balancing between backend instances
-  
+
 
 ## Run
 

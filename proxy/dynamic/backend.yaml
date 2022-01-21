@@ -8,14 +8,14 @@ http:
       middlewares:
         - strip-api-prefix
 
-  services: 
+  services:
     backend-service:
       loadBalancer:
         servers:
           - url: "http://backend1:8000/"
           - url: "http://backend2:8000/"
 
-  middlewares:  
+  middlewares:
     strip-api-prefix:
       stripPrefix:
         prefixes:

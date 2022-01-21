@@ -18,9 +18,9 @@
     * [Poetry](https://python-poetry.org/) for package management
     * [Pytest](https://docs.pytest.org/) for writing tests
     * [tox](https://tox.wiki/en/latest/index.html) for running tests
-    
+
   * Database:
-    * [CockroachDB](https://www.cockroachlabs.com/) 
+    * [CockroachDB](https://www.cockroachlabs.com/)
 
   * Prototyping, exploration, and integration tests:
     * [Jupyter](https://jupyter-docker-stacks.readthedocs.io/en/latest/)

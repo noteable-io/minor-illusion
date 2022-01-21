@@ -1,5 +1,4 @@
-"""
-Fixtures for use in tests.  This file is laid out in the following order:
+"""Fixtures for use in tests.  This file is laid out in the following order:
 
   0. Imports
 
@@ -37,15 +36,16 @@ import faker
 import httpx
 import mirakuru
 import pytest
+from fastapi import FastAPI
+from filelock import FileLock
+from pydantic import BaseModel, Field
+from sqlalchemy import create_engine
+
 from app.auth import get_user
 from app.db import db_session
 from app.main import build_app
 from app.models import BaseDAO, TodoDAO, UserDAO
 from app.settings import Settings, get_settings
-from fastapi import APIRouter, FastAPI
-from filelock import FileLock
-from pydantic import BaseModel, Field
-from sqlalchemy import create_engine
 
 
 # 1. Seed data written once to the database, treat as READ ONLY ---------------
@@ -79,7 +79,7 @@ async def seed_data():
 # tmp_data should be used in tests that edit/delete data.
 @pytest.fixture
 async def tmp_user(worker_id: str) -> UserDAO:
-    "UserDAO created and soft deleted between tests"
+    """UserDAO created and soft deleted between tests."""
     async with db_session() as session:
         user_data = {
             "name": f"tmp_user_{worker_id}",
@@ -93,8 +93,8 @@ async def tmp_user(worker_id: str) -> UserDAO:
 
 @pytest.fixture
 async def tmp_todo(seed_data: SeedData) -> TodoDAO:
-    """
-    TodoDAO created and soft deleted between tests.
+    """TodoDAO created and soft deleted between tests.
+
     Owned by the seed user.
     """
     async with db_session() as session:
@@ -112,8 +112,7 @@ async def tmp_todo(seed_data: SeedData) -> TodoDAO:
 # 3. Test REST client -------------------------------------------------------
 @pytest.fixture
 async def client(app: FastAPI) -> httpx.AsyncClient:
-    """
-    Create an async test client for the `minor-illusion` app.
+    """Create an async test client for the `minor-illusion` app.
 
     An authorization header must be present or the app
     will return 403 immediately. Normally that bearer token
@@ -145,9 +144,7 @@ AuthContext = Callable[[UserDAO], ContextManager[None]]
 def auth_as(app: FastAPI) -> AuthContext:
     @contextmanager
     def _auth_as(user: UserDAO):
-        """
-        Authenticate as the given user.
-        """
+        """Authenticate as the given user."""
         current_override = app.dependency_overrides.get(get_user)
         app.dependency_overrides[get_user] = lambda: user
         yield
@@ -158,14 +155,14 @@ def auth_as(app: FastAPI) -> AuthContext:
 
 @pytest.fixture
 def auth_seed_user(auth_as: AuthContext, seed_data: SeedData):
-    "Make requests authenticated as the seed user"
+    """Make requests authenticated as the seed user."""
     with auth_as(seed_data.user):
         yield
 
 
 @pytest.fixture
 def auth_tmp_user(auth_as: AuthContext, tmp_user: UserDAO):
-    "Make requests authenticated as a tmp_user"
+    """Make requests authenticated as a tmp_user."""
     with auth_as(tmp_user):
         yield
 
@@ -186,9 +183,8 @@ class ConnectionDetails(BaseModel):
 
 
 class ExternalServiceLifecycleManager(abc.ABC):
-    """
-    Class helping manage access and lifecycle of an external
-    process service over a pytest +possible xdist run.
+    """Class helping manage access and lifecycle of an external process service
+    over a pytest +possible xdist run.
 
     pytest-xdist aware architecture pattern inspired by
     https://github.com/pytest-dev/pytest-xdist#making-session-scoped-fixtures-execute-only-once
@@ -237,8 +233,8 @@ class ExternalServiceLifecycleManager(abc.ABC):
 
     @abc.abstractmethod
     def _start_service(self) -> Tuple[ConnectionDetails, Optional[mirakuru.Executor]]:
-        """
-        Start up the external service using mirakuru and self.unused_tcp_port_factory.
+        """Start up the external service using mirakuru and
+        self.unused_tcp_port_factory.
 
         Return the mirakuru handle, plus a Pydantic model describing all the facts
         that a client needs to connect to the running service. In an xdist run,
@@ -333,9 +329,7 @@ class ExternalServiceLifecycleManager(abc.ABC):
                 state_file_dict = json.loads(self.state_file_path.read_text())
 
                 concurrent_sessions = state_file_dict["sessions"]
-                assert (
-                    self.worker_id in concurrent_sessions
-                )  # Else __enter__ code done messed up.
+                assert self.worker_id in concurrent_sessions  # Else __enter__ code done messed up.
                 concurrent_sessions.remove(self.worker_id)
 
                 self.state_file_path.write_text(json.dumps(state_file_dict))
@@ -353,12 +347,12 @@ class CockroachDetails(ConnectionDetails):
 
     @property
     def sync_dsn(self) -> str:
-        """Project self as a SQLAlchemy synchronous DSN"""
+        """Project self as a SQLAlchemy synchronous DSN."""
         return f"cockroachdb://{self.username}:{self.password}@{self.hostname}:{self.port}/{self.dbname}"
 
     @property
     def async_dsn(self) -> str:
-        """Project self as a SQLAlchemy asynchronous DSN"""
+        """Project self as a SQLAlchemy asynchronous DSN."""
         return f"cockroachdb+asyncpg://{self.username}:{self.password}@{self.hostname}:{self.port}/{self.dbname}"
 
 
@@ -367,9 +361,8 @@ class CockroachManager(ExternalServiceLifecycleManager):
     details_class = CockroachDetails
 
     def _start_service(self) -> Tuple[CockroachDetails, Optional[mirakuru.Executor]]:
-        """
-        Start an in-memory CockroachDB using mirakuru (unless env var TEST_CRDB_DETAILS is set,
-        describing a a process already running).
+        """Start an in-memory CockroachDB using mirakuru (unless env var
+        TEST_CRDB_DETAILS is set, describing a a process already running).
 
         Cockroach needs two open ports, one for the sql connection and one for an http
         dashboard that can show debug and query information.
@@ -415,9 +408,8 @@ class CockroachManager(ExternalServiceLifecycleManager):
         return details, process
 
     def _create_schema(self, connection_details: CockroachDetails):
-        """
-        Create the table schema (if necessary -- will be a logical noop if tables already exist).
-        """
+        """Create the table schema (if necessary -- will be a logical noop if
+        tables already exist)."""
         BaseDAO.metadata.create_all(create_engine(connection_details.sync_dsn))
 
 
@@ -427,9 +419,7 @@ def cockroach(
     tmp_path_factory: pytest.TempPathFactory,
     unused_tcp_port_factory: Callable[[], int],
 ) -> CockroachDetails:
-    """
-    Fixture to yield the CockroachDB connection details
-    """
+    """Fixture to yield the CockroachDB connection details."""
     with CockroachManager(
         worker_id=worker_id,
         tmp_path_factory=tmp_path_factory,
@@ -441,9 +431,8 @@ def cockroach(
 # 7. Override `minor-illusion` settings -------------------------------------
 @pytest.fixture(scope="session", autouse=True)
 def override_settings(cockroach: CockroachDetails) -> Settings:
-    """
-    Override `minor-illusion` settings with connection details
-    for our managed external/test services instead of prod services.
+    """Override `minor-illusion` settings with connection details for our
+    managed external/test services instead of prod services.
 
     Takes advantage of get_settings() being lru_cached.
     """
