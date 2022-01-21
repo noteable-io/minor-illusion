@@ -31,7 +31,7 @@ services:
     ports:
       - 5000:5000
       - 8080:8080
-    
+
   cockroach:
     image: cockroachdb/cockroach-unstable:v21.2.0-beta.4
     command: start-single-node --insecure --listen-addr=0.0.0.0:26257
@@ -41,7 +41,7 @@ services:
     ports:
       - 8888:8888
     volumes:
-      - ./jupyter/notebooks:/home/jovyan/notebooks   
+      - ./jupyter/notebooks:/home/jovyan/notebooks
       - ./backend/src/app:/home/jovyan/backend/app:ro
     environment:
       PYTHONPATH: /home/jovyan/backend
@@ -55,6 +55,6 @@ services:
       - ./frontend/minor-illusion/public:/app/public
       - ./frontend/minor-illusion/package.json:/app/package.json
       - ./frontend/minor-illusion/yarn.lock:/app/yarn.lock
-      
+
 
 

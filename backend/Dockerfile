@@ -5,7 +5,7 @@ FROM python:${PYTHON_VERSION}-buster
 # wait-for script to pause until cockroach db is responding per netcat
 RUN wget https://raw.githubusercontent.com/eficode/wait-for/v2.1.3/wait-for \
     -O /usr/bin/wait-for && \
-    chmod +x /usr/bin/wait-for 
+    chmod +x /usr/bin/wait-for
 
 RUN apt-get update && apt-get install tini netcat -y
 
