@@ -1,17 +1,18 @@
 from unittest.mock import MagicMock
 
 import pytest
+from fastapi.testclient import TestClient
+
 from app.auth import create_token
 from app.main import app
 from app.models import UserDAO
-from fastapi.testclient import TestClient
 
 from .fake_models import FakeTodoDAO, FakeUserDAO
 
 
 @pytest.fixture
 def client():
-    "Fixture to return an HTTP client for the fastapi app"
+    """Fixture to return an HTTP client for the fastapi app."""
     yield TestClient(app=app)
 
 
@@ -34,7 +35,7 @@ async def db_session():
 
 @pytest.fixture
 async def fake_user(db_session: MagicMock):
-    "Fixture for creating a seed test user"
+    """Fixture for creating a seed test user."""
     user_data = {"name": "test_user", "password": "pass"}
     user = await FakeUserDAO.create(db_session, user_data)
     yield user
@@ -42,11 +43,9 @@ async def fake_user(db_session: MagicMock):
 
 @pytest.fixture
 def authed_client(client: TestClient, fake_user: UserDAO):
-    """
-    Fixture to create an HTTP client that includes
-    the Authorization header to authenticate against
-    FastAPI endpoints, using the "test_user" credentials
-    """
+    """Fixture to create an HTTP client that includes the Authorization header
+    to authenticate against FastAPI endpoints, using the "test_user"
+    credentials."""
     token = create_token(fake_user.name)
     auth_header = {"Authorization": f"bearer {token}"}
     client.headers.update(auth_header)

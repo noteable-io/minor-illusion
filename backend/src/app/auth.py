@@ -16,7 +16,7 @@ ALGORITHM = "HS256"
 
 @router.post("/login", include_in_schema=False)
 async def login(form_data: OAuth2PasswordRequestForm = Depends()):
-    "Authenticate a user and return a JWT token used for further requests"
+    """Authenticate a user and return a JWT token used for further requests."""
     async with db_session() as session:
         db_user = await UserDAO.get_user_by_name(session, form_data.username)
     if not db_user:
@@ -29,12 +29,12 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends()):
 
 
 def create_token(username: str):
-    "Create a JWT token for the given username"
+    """Create a JWT token for the given username."""
     return jwt.encode({"user": username}, SECRET_KEY, algorithm=ALGORITHM)
 
 
 async def get_user(token: str = Depends(oauth2_scheme)):
-    "Return the user for the given JWT token"
+    """Return the user for the given JWT token."""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

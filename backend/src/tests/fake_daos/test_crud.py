@@ -2,9 +2,10 @@ import uuid
 from unittest.mock import MagicMock
 
 import pytest
-from app.models import TodoDAO, UserDAO
 from fastapi.testclient import TestClient
 from pytest_mock import MockerFixture
+
+from app.models import TodoDAO, UserDAO
 
 from .fake_models import FakeTodoDAO, FakeUserDAO
 

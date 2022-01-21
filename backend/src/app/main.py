@@ -10,7 +10,7 @@ setup_logging()
 
 
 def build_app() -> FastAPI:
-    "Builds the minor-illusion FastAPI application"
+    """Builds the minor-illusion FastAPI application."""
     # this is encapsulated in a function to facilitate testing
     settings = get_settings()
     app = FastAPI(root_path=settings.ROOT_PATH)

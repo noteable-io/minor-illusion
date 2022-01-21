@@ -33,7 +33,7 @@ async def get_todo(id: uuid.UUID, user: UserDAO = Depends(get_user)):
     async with db_session() as session:
         todo = await TodoDAO.get(session, id)
     if not todo:
-        raise HTTPException(status.HTTP_404_NOT_FOUND, detail=f"Todo not found")
+        raise HTTPException(status.HTTP_404_NOT_FOUND, detail="Todo not found")
     return todo
 
 

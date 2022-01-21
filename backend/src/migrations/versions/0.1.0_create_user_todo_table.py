@@ -1,9 +1,8 @@
-"""Create user and todo table
+"""Create user and todo table.
 
 Revision ID: 0.1.0
-Revises: 
+Revises:
 Create Date: 2021-11-30 20:59:08.795150
-
 """
 import sqlalchemy as sa
 from alembic import op

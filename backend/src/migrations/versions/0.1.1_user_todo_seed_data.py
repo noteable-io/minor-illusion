@@ -1,9 +1,8 @@
-"""Create seed data for users and todos
+"""Create seed data for users and todos.
 
 Revision ID: 0.1.1
 Revises: 0.1.0
 Create Date: 2021-11-30 21:02:13.637947
-
 """
 import uuid
 from datetime import datetime, timezone

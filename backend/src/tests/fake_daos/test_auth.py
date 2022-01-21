@@ -1,9 +1,10 @@
 from unittest.mock import MagicMock
 
 import pytest
-from app.models import UserDAO
 from pytest_mock import MockerFixture
 from starlette.testclient import TestClient
+
+from app.models import UserDAO
 
 from .fake_models import FakeUserDAO
 

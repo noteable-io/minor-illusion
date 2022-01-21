@@ -1,8 +1,8 @@
-import re
 import uuid
 
 import httpx
 import pytest
+
 from app.models import TodoDAO
 from app.schemas import TodoCreate, TodoUpdate
 
@@ -11,7 +11,7 @@ from app.schemas import TodoCreate, TodoUpdate
 class TestReadTodos:
     @pytest.mark.usefixtures("auth_seed_user")
     async def test_read(self, client: httpx.AsyncClient, tmp_todo: TodoDAO):
-        "tmp_todo is owned by seed user, seed_user should have access"
+        """tmp_todo is owned by seed user, seed_user should have access."""
         endpoint = f"/todo/{tmp_todo.id}"
         resp = await client.get(endpoint)
         assert resp.json()["id"] == str(tmp_todo.id)
@@ -19,21 +19,25 @@ class TestReadTodos:
     @pytest.mark.xfail(reason="No RBAC implemented in minor-illusion yet")
     @pytest.mark.usefixtures("auth_tmp_user")
     async def test_read_unauth_user(self, client: httpx.AsyncClient, tmp_todo: TodoDAO):
-        "tmp_todo is owned by seed user, tmp_user should not have read permissions"
+        """tmp_todo is owned by seed user, tmp_user should not have read
+        permissions."""
         endpoint = f"/todo/{tmp_todo.id}"
         resp = await client.get(endpoint)
         assert resp.status_code == 401
 
     @pytest.mark.usefixtures("auth_seed_user")
     async def test_read_invalid_id(self, client: httpx.AsyncClient):
-        "Todo with invalid id should not exist"
+        """Todo with invalid id should not exist."""
         endpoint = f"/todo/{uuid.uuid4()}"
         resp = await client.get(endpoint)
         assert resp.status_code == 404
 
     @pytest.mark.usefixtures("auth_seed_user")
     async def test_read_all_todos(self, client: httpx.AsyncClient, tmp_todo: TodoDAO):
-        "Return all todos.  When running in parallel, this could be any number of todos"
+        """Return all todos.
+
+        When running in parallel, this could be any number of todos
+        """
         endpoint = "/todo"
         resp = await client.get(endpoint)
         todo_ids = [t["id"] for t in resp.json()]
@@ -112,10 +116,9 @@ class TestUpdateTodos:
 
     @pytest.mark.xfail(reason="No RBAC implemented in minor-illusion yet")
     @pytest.mark.usefixtures("auth_tmp_user")
-    async def test_update_unauth_user(
-        self, client: httpx.AsyncClient, tmp_todo: TodoDAO
-    ):
-        "tmp_todo is owned by seed user, tmp_user should not have update permissions"
+    async def test_update_unauth_user(self, client: httpx.AsyncClient, tmp_todo: TodoDAO):
+        """tmp_todo is owned by seed user, tmp_user should not have update
+        permissions."""
         endpoint = f"/todo/{tmp_todo.id}"
         body = TodoUpdate(title="new title", content="new content")
         resp = await client.put(endpoint, data=body.json())
@@ -145,10 +148,9 @@ class TestDeleteTodos:
 
     @pytest.mark.xfail(reason="No RBAC implemented in minor-illusion yet")
     @pytest.mark.usefixtures("auth_tmp_user")
-    async def test_delete_unauth_user(
-        self, client: httpx.AsyncClient, tmp_todo: TodoDAO
-    ):
-        "tmp_todo is owned by seed user, tmp_user should not have delete permissions"
+    async def test_delete_unauth_user(self, client: httpx.AsyncClient, tmp_todo: TodoDAO):
+        """tmp_todo is owned by seed user, tmp_user should not have delete
+        permissions."""
         endpoint = f"/todo/{tmp_todo.id}"
         resp = await client.delete(endpoint)
         assert resp.status_code == 422

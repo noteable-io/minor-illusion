@@ -19,9 +19,7 @@ class BaseDAO:
         unique=True,
         nullable=False,
     )
-    created_at = sa.Column(
-        sa.TIMESTAMP(timezone=True), default=sa.func.now(), nullable=False
-    )
+    created_at = sa.Column(sa.TIMESTAMP(timezone=True), default=sa.func.now(), nullable=False)
 
     @classmethod
     async def new(cls, session: AsyncSession, api_model: Union[BaseModel, dict]):
@@ -52,7 +50,8 @@ class BaseDAO:
         return results.scalars().all()
 
     def update(self, api_model: Optional[Union[BaseModel, dict]] = None, **kwargs):
-        """Update instance attributes by passing a model, dict, or kwargs to update"""
+        """Update instance attributes by passing a model, dict, or kwargs to
+        update."""
         if api_model:
             if isinstance(api_model, BaseModel):
                 kwargs.update(api_model.dict(exclude_unset=True))
@@ -90,9 +89,7 @@ class TodoDAO(BaseDAO):
 
     title = sa.Column(sa.String)
     content = sa.Column(sa.String)
-    user_id = sa.Column(
-        PostgresUUID(as_uuid=True), sa.ForeignKey("users.id"), index=True
-    )
+    user_id = sa.Column(PostgresUUID(as_uuid=True), sa.ForeignKey("users.id"), index=True)
     user = sa.orm.relationship("UserDAO", back_populates="todos", lazy="selectin")
 
     @classmethod
