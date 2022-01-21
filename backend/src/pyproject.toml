@@ -36,6 +36,7 @@ filelock = "^3.4.2"
 pytest-xdist = "^2.5.0"
 # Needed for pytest-xdist vs sqlalchemy
 greenlet = "^1.1.2"
+pre-commit = "^2.17.0"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
