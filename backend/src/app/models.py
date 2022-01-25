@@ -68,6 +68,38 @@ class BaseDAO:
         return results.rowcount
 
 
+class OrganizationDAO(BaseDAO):
+    __tablename__ = "organizations"
+
+    name = sa.Column(sa.String, unique=True, index=True)
+
+    spaces = sa.orm.relationship("SpaceDAO", back_populates="organization")
+    users = sa.orm.relationship("UserDAO", back_populates="organization")
+
+    @classmethod
+    async def get_users_by_name(cls, session: AsyncSession, name: str):
+        statement = sa.select(cls).where(cls.name == name)
+        results = await session.execute(statement)
+        return results.scalars().all()
+
+
+class SpaceDAO(BaseDAO):
+    __tablename__ = "spaces"
+    name = sa.Column(sa.String, unique=True, index=True)
+    organization_id = sa.Column(
+        PostgresUUID(as_uuid=True), sa.ForeignKey("organizations.id"), index=True
+    )
+
+    organization = sa.orm.relationship("OrganizationDAO", back_populates="spaces")
+    todos = sa.orm.relationship("TodoDAO", back_populates="space")
+
+    @classmethod
+    async def get_todos_by_name(cls, session: AsyncSession, name: str):
+        statement = sa.select(cls).where(cls.name == name)
+        results = await session.execute(statement)
+        return results.scalars().all()
+
+
 class UserDAO(BaseDAO):
     # special case pluralize tablename to "users" so that
     # it's easier to work with if you're using psql
@@ -75,6 +107,10 @@ class UserDAO(BaseDAO):
 
     name = sa.Column(sa.String, unique=True)
     password = sa.Column(sa.String)
+    organization_id = sa.Column(
+        PostgresUUID(as_uuid=True), sa.ForeignKey("organizations.id"), index=True
+    )
+    organization = sa.orm.relationship("OrganizationDAO", back_populates="users")
     todos = sa.orm.relationship("TodoDAO", back_populates="user")
 
     @classmethod
@@ -94,6 +130,10 @@ class TodoDAO(BaseDAO):
         PostgresUUID(as_uuid=True), sa.ForeignKey("users.id"), index=True
     )
     user = sa.orm.relationship("UserDAO", back_populates="todos", lazy="selectin")
+    space_id = sa.Column(
+        PostgresUUID(as_uuid=True), sa.ForeignKey("spaces.id"), index=True
+    )
+    space = sa.orm.relationship("SpaceDAO", back_populates="todos", lazy="selectin")
 
     @classmethod
     async def get_todos_by_username(cls, session: AsyncSession, name: str):
