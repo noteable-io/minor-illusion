@@ -2,7 +2,7 @@ import os
 
 from fastapi import APIRouter, Depends
 
-from app.auth import get_user
+from app.auth import get_rctx
 from app.models import UserDAO
 from app.schemas import UserOut
 
@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 @router.get("/me", response_model=UserOut)
-def me(user: UserDAO = Depends(get_user)):
+def me(user: UserDAO = Depends(get_rctx)):
     return user
 
 

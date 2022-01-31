@@ -19,6 +19,7 @@ class TodoCreate(BaseModel):
     "Todo form validation for creating new objects"
     title: str
     content: str
+    space_id: uuid.UUID
 
 
 class TodoUpdate(BaseModel):
@@ -33,6 +34,7 @@ class TodoOut(BaseModel):
     created_at: datetime
     title: str
     content: str
+    space_id: uuid.UUID
 
     class Config:
         orm_mode = True

@@ -37,7 +37,7 @@ import faker
 import httpx
 import mirakuru
 import pytest
-from app.auth import get_user
+from app.auth import get_rctx
 from app.db import db_session
 from app.main import build_app
 from app.models import BaseDAO, TodoDAO, UserDAO
@@ -148,10 +148,10 @@ def auth_as(app: FastAPI) -> AuthContext:
         """
         Authenticate as the given user.
         """
-        current_override = app.dependency_overrides.get(get_user)
-        app.dependency_overrides[get_user] = lambda: user
+        current_override = app.dependency_overrides.get(get_rctx)
+        app.dependency_overrides[get_rctx] = lambda: user
         yield
-        app.dependency_overrides[get_user] = current_override
+        app.dependency_overrides[get_rctx] = current_override
 
     return _auth_as
 
