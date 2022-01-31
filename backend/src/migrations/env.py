@@ -4,6 +4,7 @@ from alembic import context
 
 # All app's models live in app.models, so nothing else to import.
 from app.models import BaseDAO
+from app.settings import get_settings
 from sqlalchemy import engine_from_config, pool
 
 # this is the Alembic Config object, which provides
@@ -15,7 +16,7 @@ config = context.config
 fileConfig(config.config_file_name)
 
 # Override the config option from ini file with what codebase knows.
-config.set_main_option("sqlalchemy.url", "cockroachdb://root@localhost:26257/defaultdb?sslmode=disable")
+config.set_main_option("sqlalchemy.url", get_settings().DB_DSN)
 
 
 # add your model's MetaData object here
