@@ -44,9 +44,9 @@ class TestReadTodos:
 @pytest.mark.asyncio
 class TestCreateTodos:
     @pytest.mark.usefixtures("auth_seed_user")
-    async def test_create(self, client: httpx.AsyncClient):
+    async def test_create(self, client: httpx.AsyncClient, seed_data):
         endpoint = "/todo"
-        body = TodoCreate(title="test title", content="test content")
+        body = TodoCreate(title="test title", content="test content", space_id=seed_data.space.id)
         resp = await client.post(endpoint, data=body.json())
         assert resp.status_code == 200
 
@@ -57,7 +57,7 @@ class TestCreateTodos:
         assert resp.status_code == 200
         assert resp.json()["title"] == body.title
         assert resp.json()["content"] == body.content
-
+        assert resp.json()["space_id"] == str(body.space_id)
     # test_create_unauth_user would be next but there's no concept
     # of todo spaces or projects... anyone can create a todo right now
 
@@ -75,6 +75,11 @@ class TestCreateTodos:
                 },
                 {
                     "loc": ["body", "content"],
+                    "msg": "field required",
+                    "type": "value_error.missing",
+                },
+                {
+                    "loc": ["body", "space_id"],
                     "msg": "field required",
                     "type": "value_error.missing",
                 },
