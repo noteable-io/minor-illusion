@@ -37,10 +37,10 @@ import faker
 import httpx
 import mirakuru
 import pytest
-from app.auth import get_user
+from app.auth import RequestContext, get_rctx
 from app.db import db_session
 from app.main import build_app
-from app.models import BaseDAO, TodoDAO, UserDAO
+from app.models import BaseDAO, OrganizationDAO, SpaceDAO, TodoDAO, UserDAO
 from app.settings import Settings, get_settings
 from fastapi import APIRouter, FastAPI
 from filelock import FileLock
@@ -58,6 +58,8 @@ from sqlalchemy import create_engine
 # Seed data should be treated as READ ONLY.  Do not edit/delete.
 @dataclasses.dataclass
 class SeedData:
+    org: OrganizationDAO
+    space: SpaceDAO
     user: UserDAO
 
 
@@ -68,22 +70,29 @@ async def seed_data():
     pid = os.getpid()
 
     async with db_session() as session:
+        organization_data = {"name": "Fake org"}
+        org = await OrganizationDAO.create(session=session, api_model=organization_data)
+
+        space_data = {"name": "Fake space", "organization_id": org.id}
+        space = await SpaceDAO.create(session=session, api_model=space_data)
+
         name = f"seedy_{pid}"
         password = faker.Faker().password()
-        user_data = {"name": name, "password": password}
+        user_data = {"name": name, "password": password, "organization_id": org.id}
         user = await UserDAO.create(session=session, api_model=user_data)
-    return SeedData(user=user)
+    return SeedData(org=org, space=space, user=user)
 
 
 # 2. Temporary data ---------------------------------------------------------
 # tmp_data should be used in tests that edit/delete data.
 @pytest.fixture
-async def tmp_user(worker_id: str) -> UserDAO:
+async def tmp_user(seed_data: SeedData, worker_id: str) -> UserDAO:
     "UserDAO created and soft deleted between tests"
     async with db_session() as session:
         user_data = {
             "name": f"tmp_user_{worker_id}",
             "password": faker.Faker().password(),
+            "organization_id": seed_data.org.id
         }
         user = await UserDAO.create(session=session, api_model=user_data)
     yield user
@@ -102,6 +111,7 @@ async def tmp_todo(seed_data: SeedData) -> TodoDAO:
             "title": faker.Faker().text(),
             "content": faker.Faker().sentence(),
             "user_id": seed_data.user.id,
+            "space_id": seed_data.space.id
         }
         todo = await TodoDAO.create(session=session, api_model=todo_data)
     yield todo
@@ -138,20 +148,20 @@ async def client(app: FastAPI) -> httpx.AsyncClient:
 # potentially other users if tests need that flexibility in the future.
 # Typically you just need to decorate a test function with
 # @pytest.mark.usefixtures('auth_seed_user') or 'auth_tmp_user' as appropriate
-AuthContext = Callable[[UserDAO], ContextManager[None]]
+AuthContext = Callable[[RequestContext], ContextManager[None]]
 
 
 @pytest.fixture
 def auth_as(app: FastAPI) -> AuthContext:
     @contextmanager
-    def _auth_as(user: UserDAO):
+    def _auth_as(rctx: RequestContext):
         """
         Authenticate as the given user.
         """
-        current_override = app.dependency_overrides.get(get_user)
-        app.dependency_overrides[get_user] = lambda: user
+        current_override = app.dependency_overrides.get(get_rctx)
+        app.dependency_overrides[get_rctx] = lambda: rctx
         yield
-        app.dependency_overrides[get_user] = current_override
+        app.dependency_overrides[get_rctx] = current_override
 
     return _auth_as
 
@@ -159,14 +169,16 @@ def auth_as(app: FastAPI) -> AuthContext:
 @pytest.fixture
 def auth_seed_user(auth_as: AuthContext, seed_data: SeedData):
     "Make requests authenticated as the seed user"
-    with auth_as(seed_data.user):
+    rctx = RequestContext(user=seed_data.user, org=seed_data.org)
+    with auth_as(rctx):
         yield
 
 
 @pytest.fixture
-def auth_tmp_user(auth_as: AuthContext, tmp_user: UserDAO):
+def auth_tmp_user(auth_as: AuthContext, seed_data: SeedData, tmp_user: UserDAO):
     "Make requests authenticated as a tmp_user"
-    with auth_as(tmp_user):
+    rctx = RequestContext(user=tmp_user, org=seed_data.org)
+    with auth_as(rctx):
         yield
 
 

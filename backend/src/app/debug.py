@@ -2,7 +2,7 @@ import os
 
 from fastapi import APIRouter, Depends
 
-from app.auth import get_user
+from app.auth import RequestContext, get_rctx
 from app.models import UserDAO
 from app.schemas import UserOut
 
@@ -10,8 +10,8 @@ router = APIRouter()
 
 
 @router.get("/me", response_model=UserOut)
-def me(user: UserDAO = Depends(get_user)):
-    return user
+def me(rctx: RequestContext = Depends(get_rctx)):
+    return rctx.user
 
 
 # Useful for seeing which backend your browser is connected to
