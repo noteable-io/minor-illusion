@@ -110,7 +110,7 @@ class UserDAO(BaseDAO):
     organization_id = sa.Column(
         PostgresUUID(as_uuid=True), sa.ForeignKey("organizations.id"), index=True
     )
-    organization = sa.orm.relationship("OrganizationDAO", back_populates="users")
+    organization = sa.orm.relationship("OrganizationDAO", back_populates="users", lazy='selectin')
     todos = sa.orm.relationship("TodoDAO", back_populates="user")
 
     @classmethod
