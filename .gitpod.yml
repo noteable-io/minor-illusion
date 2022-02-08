@@ -2,12 +2,35 @@ image:
   file: .gitpod.Dockerfile
 
 tasks:
-  - name: Backend Dev
+  - name: Backend
     init: |
       cd backend/src
       pyenv local 3.9.7
       poetry install
-    command: poetry shell
+    command: poetry run uvicorn app.main:app --reload
+
+  - name: Frontend
+    init: |
+      cd frontend/minor-illusion
+      yarn install
+    command: npm run dev
+
+  - name: CockroachDB
+    command: cockroach start-single-node --insecure
+
+  - name: Jupyter
+    init: |
+      cd jupyter
+      pyenv local 3.9.7
+      poetry install
+    command: poetry run jupyter notebook
+
+  - name: Traefik
+    init: |
+      cd proxy
+      curl -L https://github.com/traefik/traefik/releases/download/v2.6.0/traefik_v2.6.0_linux_amd64.tar.gz | tar -zxvf - -C /tmp/
+      sudo cp /tmp/traefik /usr/local/bin
+    command: traefik
       
 
   
