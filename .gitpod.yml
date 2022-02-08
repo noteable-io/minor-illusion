@@ -1,17 +1,10 @@
-tasks:
-  - name: Docker-Compose
-    init: |
-      docker-compose pull
-      docker-compose build
-    command: |
-      docker-compose up -d && docker-compose logs -f
+image:
+  file: .gitpod.Dockerfile
 
+tasks:
   - name: Backend Dev
-    init: |
-      curl -sSL https://install.python-poetry.org | python -
-      cd backend/src
-      poetry install
     command: |
+      cd backend/src
       poetry shell
 
   
