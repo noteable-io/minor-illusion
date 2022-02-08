@@ -3,8 +3,11 @@ image:
 
 tasks:
   - name: Backend Dev
-    command: |
+    init: |
       cd backend/src
-      poetry shell
+      pyenv local 3.9.7
+      poetry install
+    command: poetry shell
+      
 
   
