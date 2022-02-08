@@ -4,6 +4,8 @@
 entryPoints:
   web:
     address: ":5000"
+  traefik:
+    address: ":8080"
 
 api:
   dashboard: true
