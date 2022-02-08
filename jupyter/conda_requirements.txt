@@ -1,6 +1,0 @@
-# general nice-to-have jupyter stuff
-pandas
-
-# Exploring the test app and database
-asyncpg
-psycopg2-binary
