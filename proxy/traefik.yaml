@@ -5,7 +5,7 @@ entryPoints:
   web:
     address: ":5000"
   traefik:
-    address: ":8080"
+    address: ":8081"
 
 api:
   dashboard: true
@@ -13,7 +13,7 @@ api:
 
 providers:
   file:
-    directory: /etc/traefik/dynamic
+    directory: ./dynamic
 
 logs:
   level: DEBUG
