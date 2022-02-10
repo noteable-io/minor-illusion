@@ -16,7 +16,7 @@ config = context.config
 fileConfig(config.config_file_name)
 
 # Override the config option from ini file with what codebase knows.
-config.set_main_option("sqlalchemy.url", get_settings().DB_DSN)
+config.set_main_option("sqlalchemy.url", get_settings().SYNC_DB_DSN)
 
 
 # add your model's MetaData object here

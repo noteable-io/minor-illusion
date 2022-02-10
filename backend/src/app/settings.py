@@ -6,7 +6,8 @@ from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
-    DB_DSN: str = "cockroachdb+asyncpg://root@cockroach:26257/defaultdb"
+    DB_DSN: str = "cockroachdb+asyncpg://root@localhost:26257/defaultdb"
+    SYNC_DB_DSN: str = "cockroachdb://root@localhost:26257/defaultdb?sslmode=disable"
     LOG_LEVEL: str = "INFO"
     LOGS_AS_JSON: bool = False
     ROOT_PATH: Optional[str] = None
