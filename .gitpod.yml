@@ -18,18 +18,15 @@ tasks:
   - name: CockroachDB
     command: cockroach start-single-node --insecure
 
-  - name: Jupyter
-    init: |
-      cd jupyter
-      pyenv local 3.9.7
-      poetry install
-    command: poetry run jupyter notebook
+  # TODO: support CORS from gitpod url (noteableio-minorillusion-hash.xxx.gitpod.io)
+  # - name: Jupyter
+  #   init: |
+  #     cd jupyter
+  #     pyenv local 3.9.7
+  #     poetry install
+  #   command: poetry run jupyter notebook
 
   - name: Traefik
-    init: |
-      cd proxy
-      curl -L https://github.com/traefik/traefik/releases/download/v2.6.0/traefik_v2.6.0_linux_amd64.tar.gz | tar -zxvf - -C /tmp/
-      sudo cp /tmp/traefik /usr/local/bin
     command: traefik
       
 
