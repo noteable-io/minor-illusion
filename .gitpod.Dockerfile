@@ -11,5 +11,5 @@ RUN curl https://binaries.cockroachdb.com/cockroach-v21.2.5.linux-amd64.tgz | ta
     sudo cp -i cockroach-v21.2.5.linux-amd64/cockroach /usr/local/bin/
 
  # Install Traefik
- RUN curl -L https://github.com/traefik/traefik/releases/download/v2.6.0/traefik_v2.6.0_linux_amd64.tar.gz | tar -zxvf - -C /tmp/
-      sudo cp /tmp/traefik /usr/local/bin
+ RUN curl -L https://github.com/traefik/traefik/releases/download/v2.6.0/traefik_v2.6.0_linux_amd64.tar.gz | tar -zxvf - -C /tmp/ && \
+     sudo mv /tmp/traefik /usr/local/bin
