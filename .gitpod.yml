@@ -2,11 +2,29 @@ image:
   file: .gitpod.Dockerfile
 
 tasks:
-  - name: Backend
+  # Set up the Backend virtualenv which will be used 
+  # by a number of other tasks.  They will `gp sync-await poetry-install`
+  # to pause until this task is complete
+  - name: Poetry install
     init: |
       cd backend/src
       pyenv local 3.9.7
       poetry install
+    command: gp sync-done poetry-install
+
+  # Apply migrations to the database before Backend starts
+  - name: Alembic 
+    init: |
+      cd backend/src
+      gp sync-await poetry-install
+    command: |
+      poetry run alembic upgrade head
+      gp sync-done alembic
+
+  - name: Backend
+    init: |
+      cd backend/src
+      gp sync-await alembic
     command: poetry run uvicorn app.main:app --reload
 
   - name: Frontend
@@ -27,6 +45,7 @@ tasks:
   #   command: poetry run jupyter notebook
 
   - name: Traefik
+    init: cd proxy
     command: traefik
       
 
