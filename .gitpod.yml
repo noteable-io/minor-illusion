@@ -2,7 +2,7 @@ image:
   file: .gitpod.Dockerfile
 
 tasks:
-  # Set up the Backend virtualenv which will be used 
+  # Set up the Backend virtualenv which will be used
   # by a number of other tasks.  They will `gp sync-await poetry-install`
   # to pause until this task is complete
   - name: Poetry install
@@ -13,7 +13,7 @@ tasks:
     command: gp sync-done poetry-install
 
   # Apply migrations to the database before Backend starts
-  - name: Alembic 
+  - name: Alembic
     init: |
       cd backend/src
       gp sync-await poetry-install
@@ -47,6 +47,11 @@ tasks:
   - name: Traefik
     init: cd proxy
     command: traefik
-      
 
-  
+ports:
+  - port: 8000
+    visibility: public
+
+  - port: 3000
+    visibility: public
+
