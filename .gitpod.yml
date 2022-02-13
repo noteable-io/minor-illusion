@@ -10,13 +10,14 @@ tasks:
       cd backend/src
       pyenv local 3.9.7
       poetry install
-    command: gp sync-done poetry-install
+    command: gp sync-done poetry-install && exit
 
   # Apply migrations to the database before Backend starts
   - name: Alembic
     init: |
       cd backend/src
       gp sync-await poetry-install
+      gp await-port 26257
     command: |
       poetry run alembic upgrade head
       gp sync-done alembic
@@ -49,9 +50,18 @@ tasks:
     command: traefik
 
 ports:
+  # Backend
   - port: 8000
     visibility: public
 
+  # Frontend
   - port: 3000
     visibility: public
 
+  # Proxy
+  - port: 5000
+    visibility: public
+
+  # Cockroach web UI
+  - port: 8080
+    visibility: public
