@@ -4,7 +4,6 @@ from app.debug import router as DebugRouter
 from app.log_utils import setup_logging
 from app.settings import get_settings
 from fastapi import FastAPI
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 setup_logging()
 
@@ -22,4 +21,3 @@ def build_app() -> FastAPI:
 
 
 app = build_app()
-FastAPIInstrumentor().instrument_app(app)

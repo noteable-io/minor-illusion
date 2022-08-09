@@ -8,4 +8,8 @@ if [[ -n "$RUN_ALEMBIC" ]]; then
     poetry run alembic upgrade head 
 fi
 
-poetry run python -m debugpy --listen 0.0.0.0:5678 -m uvicorn app.main:app --reload --host 0.0.0.0
+# poetry run python -m debugpy --listen 0.0.0.0:5678 -m uvicorn app.main:app --reload --host 0.0.0.0
+
+poetry run opentelemetry-instrument uvicorn app.main:app --host 0.0.0.0
+
+# poetry run uvicorn app.main:app --reload --host 0.0.0.0

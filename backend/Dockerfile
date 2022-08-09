@@ -19,6 +19,8 @@ COPY ./src/pyproject.toml .
 COPY ./src/poetry.lock .
 COPY ./src/poetry.toml .
 RUN poetry install
+RUN poetry run opentelemetry-bootstrap --action=install
+ENV WORKERS=1
 
 COPY ./src .
 
