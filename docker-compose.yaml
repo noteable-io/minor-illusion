@@ -56,5 +56,41 @@ services:
       - ./frontend/minor-illusion/package.json:/app/package.json
       - ./frontend/minor-illusion/yarn.lock:/app/yarn.lock
       
+  # For logging and APM
+  opensearch:
+    image: opensearchproject/opensearch:2.1.0
+    environment:
+      - discovery.type=single-node
+    ports:
+      - 9200:9200
+      
+  dashboard:
+    # Observability plugin and others are already installed, sanity check by 
+    # exec'ing into container and `bin/opensearch-dashboards-plugin list`
+    image: opensearchproject/opensearch-dashboards:2.1.0
+    ports:
+      - 5601:5601
+    depends_on:
+      - opensearch
+    environment:
+      OPENSEARCH_HOSTS: "https://opensearch:9200"
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+
+  data-prepper:
+    image: opensearchproject/data-prepper:latest
+    volumes:
+      - ./opensearch/data-prepper-pipeline.yaml:/usr/share/data-prepper/pipelines.yaml
+      #- ./opensearch/data-prepper-config.yaml:/usr/share/data-prepper/data-prepper-config.yaml
+    depends_on:
+      - opensearch
+
+  otel-collector:
+    image: otel/opentelemetry-collector:0.54.0
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./opensearch/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - 4318:4318 # OTLP http receiver
+    
 
 

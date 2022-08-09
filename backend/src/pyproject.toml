@@ -19,6 +19,7 @@ sqlalchemy-cockroachdb = "^1.4.3"
 structlog = "^21.4.0"
 uvicorn = "^0.15.0"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+opentelemetry-instrumentation-starlette = "^0.32b0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"

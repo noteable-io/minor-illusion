@@ -1,10 +1,10 @@
-from fastapi import FastAPI
-
 from app.auth import router as AuthRouter
 from app.crud import router as CrudRouter
 from app.debug import router as DebugRouter
 from app.log_utils import setup_logging
 from app.settings import get_settings
+from fastapi import FastAPI
+from opentelemetry.instrumentation.starlette import StarletteInstrumentor
 
 setup_logging()
 
@@ -17,6 +17,8 @@ def build_app() -> FastAPI:
     app.include_router(AuthRouter)
     app.include_router(CrudRouter)
     app.include_router(DebugRouter)
+
+    StarletteInstrumentor.instrument_app(app)
     return app
 
 
