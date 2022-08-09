@@ -19,7 +19,10 @@ sqlalchemy-cockroachdb = "^1.4.3"
 structlog = "^21.4.0"
 uvicorn = "^0.15.0"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
-opentelemetry-instrumentation-starlette = "^0.32b0"
+# As of Aug 2022, need to use 1.12 pre-release for main opentelemetry libs
+# see https://github.com/open-telemetry/opentelemetry-python-contrib/issues/1182
+opentelemetry-instrumentation-fastapi = "^0.32b0"
+opentelemetry-sdk = {version = "^1.12.0rc2", allow-prereleases = true}
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"

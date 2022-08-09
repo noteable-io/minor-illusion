@@ -4,7 +4,7 @@ from app.debug import router as DebugRouter
 from app.log_utils import setup_logging
 from app.settings import get_settings
 from fastapi import FastAPI
-from opentelemetry.instrumentation.starlette import StarletteInstrumentor
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 
 setup_logging()
 
@@ -18,8 +18,8 @@ def build_app() -> FastAPI:
     app.include_router(CrudRouter)
     app.include_router(DebugRouter)
 
-    StarletteInstrumentor.instrument_app(app)
     return app
 
 
 app = build_app()
+FastAPIInstrumentor().instrument_app(app)
