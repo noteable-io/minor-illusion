@@ -5,56 +5,65 @@ services:
     build: ./backend
     ports:
       - 5678:5678
+      - 8000:8000
     volumes:
       - ./backend/src/app:/usr/src/app
       - ./backend/src/tests:/usr/src/tests
       - ./backend/src/migrations/versions:/usr/src/migrations/versions
     environment:
-      ROOT_PATH: "/api"
+      # ROOT_PATH: "/api"
       RUN_ALEMBIC: 1
+      OTEL_SERVICE_NAME: "minor-illusion"
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_EXPORTER_OTLP_INSECURE: "true"
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: grpc
+      OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: grpc
+      PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: python
+      PYTHONASYNCIODEBUG: 1
     restart: always
 
-  backend2:
-    build: ./backend
-    volumes:
-      - ./backend/src/app:/usr/src/app
-      - ./backend/src/tests:/usr/src/tests
-      - ./backend/src/migrations/versions:/usr/src/migrations/versions
-    environment:
-      ROOT_PATH: "/api"
-    restart: always
+  # backend2:
+  #   build: ./backend
+  #   volumes:
+  #     - ./backend/src/app:/usr/src/app
+  #     - ./backend/src/tests:/usr/src/tests
+  #     - ./backend/src/migrations/versions:/usr/src/migrations/versions
+  #   environment:
+  #     ROOT_PATH: "/api"
+  #   restart: always
 
-  proxy:
-    image: traefik:latest
-    volumes:
-      - ./proxy:/etc/traefik
-    ports:
-      - 5000:5000
-      - 8080:8080
+  # proxy:
+  #   image: traefik:latest
+  #   volumes:
+  #     - ./proxy:/etc/traefik
+  #   ports:
+  #     - 5000:5000
+  #     - 8080:8080
     
   cockroach:
     image: cockroachdb/cockroach-unstable:v21.2.0-beta.4
     command: start-single-node --insecure --listen-addr=0.0.0.0:26257
 
-  jupyter:
-    build: ./jupyter
-    ports:
-      - 8888:8888
-    volumes:
-      - ./jupyter/notebooks:/home/jovyan/notebooks   
-      - ./backend/src/app:/home/jovyan/backend/app:ro
-    environment:
-      PYTHONPATH: /home/jovyan/backend
+  # jupyter:
+  #   build: ./jupyter
+  #   ports:
+  #     - 8888:8888
+  #   volumes:
+  #     - ./jupyter/notebooks:/home/jovyan/notebooks   
+  #     - ./backend/src/app:/home/jovyan/backend/app:ro
+  #   environment:
+  #     PYTHONPATH: /home/jovyan/backend
 
-  frontend:
-    build: ./frontend
-    volumes:
-      # I'd love to just mount ./frontend/minor-illusion:/app
-      # but it is volume hell with node_modules and .next directories
-      - ./frontend/minor-illusion/src:/app/src
-      - ./frontend/minor-illusion/public:/app/public
-      - ./frontend/minor-illusion/package.json:/app/package.json
-      - ./frontend/minor-illusion/yarn.lock:/app/yarn.lock
+  # frontend:
+  #   build: ./frontend
+  #   volumes:
+  #     # I'd love to just mount ./frontend/minor-illusion:/app
+  #     # but it is volume hell with node_modules and .next directories
+  #     - ./frontend/minor-illusion/src:/app/src
+  #     - ./frontend/minor-illusion/public:/app/public
+  #     - ./frontend/minor-illusion/package.json:/app/package.json
+  #     - ./frontend/minor-illusion/yarn.lock:/app/yarn.lock
       
   # For logging and APM
   opensearch:
