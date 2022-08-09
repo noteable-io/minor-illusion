@@ -1,7 +1,7 @@
 receivers:
   otlp:
     protocols:
-      http:
+      grpc:
 
 exporters:
   otlp/data-prepper:
