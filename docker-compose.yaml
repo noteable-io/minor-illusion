@@ -14,13 +14,11 @@ services:
       # ROOT_PATH: "/api"
       RUN_ALEMBIC: 1
       OTEL_SERVICE_NAME: "minor-illusion"
-      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_EXPORTER_OTLP_ENDPOINT: otel-collector:4317
       OTEL_EXPORTER_OTLP_INSECURE: "true"
       OTEL_EXPORTER_OTLP_PROTOCOL: grpc
-      OTEL_EXPORTER_OTLP_TRACES_PROTOCOL: grpc
-      OTEL_EXPORTER_OTLP_METRICS_PROTOCOL: grpc
       PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION: python
-      PYTHONASYNCIODEBUG: 1
+      # PYTHONASYNCIODEBUG: 1
     restart: always
 
   # backend2:
