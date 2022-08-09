@@ -1,7 +1,6 @@
 import logging.config
 
 import structlog
-
 from app.settings import get_settings
 
 settings = get_settings()
@@ -59,7 +58,7 @@ def setup_logging():
             structlog.stdlib.PositionalArgumentsFormatter(),
             structlog.processors.StackInfoRenderer(),
             structlog.processors.format_exc_info,
-            # structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+            structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
         ],
         context_class=dict,
         logger_factory=structlog.stdlib.LoggerFactory(),

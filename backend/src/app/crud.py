@@ -1,18 +1,23 @@
+import logging
 import uuid
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
-
+import structlog
 from app.auth import RequestContext, get_rctx
 from app.db import db_session
 from app.models import TodoDAO
 from app.schemas import TodoCreate, TodoOut, TodoUpdate
+from fastapi import APIRouter, Depends, HTTPException, status
+
+vanilla_logger = logging.getLogger(__name__)
+logger = structlog.get_logger(__name__)
 
 router = APIRouter(prefix="/todo", tags=["todo"])
 
 
 @router.post("/", response_model=TodoOut)
 async def create_todo(form_data: TodoCreate, rctx: RequestContext = Depends(get_rctx)):
+    logger.info("In create_todo", rctx=rctx)
     async with db_session() as session:
         data = {}
         data.update(form_data)
@@ -23,6 +28,8 @@ async def create_todo(form_data: TodoCreate, rctx: RequestContext = Depends(get_
 
 @router.get("/", response_model=List[TodoOut])
 async def get_all_todos(rctx: RequestContext = Depends(get_rctx)):
+    logger.info("in get_all_todos", rctx=rctx)
+    vanilla_logger.info("vanilla get_all_todos")
     async with db_session() as session:
         todos = await TodoDAO.get_todos_by_username(session, rctx.user.name)
     return todos
