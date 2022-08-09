@@ -499,7 +499,7 @@ python-versions = "*"
 
 [[package]]
 name = "opentelemetry-api"
-version = "1.11.1"
+version = "1.12.0rc2"
 description = "OpenTelemetry Python API"
 category = "main"
 optional = false
@@ -540,9 +540,9 @@ instruments = ["asgiref (>=3.0,<4.0)"]
 test = ["opentelemetry-test-utils (==0.32b0)", "asgiref (>=3.0,<4.0)"]
 
 [[package]]
-name = "opentelemetry-instrumentation-starlette"
+name = "opentelemetry-instrumentation-fastapi"
 version = "0.32b0"
-description = "OpenTelemetry Starlette Instrumentation"
+description = "OpenTelemetry FastAPI Instrumentation"
 category = "main"
 optional = false
 python-versions = ">=3.6"
@@ -555,8 +555,21 @@ opentelemetry-semantic-conventions = "0.32b0"
 opentelemetry-util-http = "0.32b0"
 
 [package.extras]
-instruments = ["starlette (>=0.13.0,<0.14.0)"]
-test = ["opentelemetry-test-utils (==0.32b0)", "requests (>=2.23.0,<2.24.0)", "starlette (>=0.13.0,<0.14.0)"]
+instruments = ["fastapi (>=0.58,<1.0)"]
+test = ["opentelemetry-test-utils (==0.32b0)", "requests (>=2.23.0,<2.24.0)", "fastapi (>=0.58,<1.0)"]
+
+[[package]]
+name = "opentelemetry-sdk"
+version = "1.12.0rc2"
+description = "OpenTelemetry Python SDK"
+category = "main"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+opentelemetry-api = "1.12.0rc2"
+opentelemetry-semantic-conventions = "0.32b0"
+typing-extensions = ">=3.7.4"
 
 [[package]]
 name = "opentelemetry-semantic-conventions"
@@ -1049,7 +1062,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.9"
-content-hash = "6eb26e041333816fbf69f104663f2b624fd0c80c5dbcf884a2d8ad077a7fdbea"
+content-hash = "0e02c9afc42eca89447245512357f999930e4b27761b35f0b97e5d7714cad191"
 
 [metadata.files]
 alembic = []
@@ -1287,7 +1300,8 @@ mypy-extensions = [
 opentelemetry-api = []
 opentelemetry-instrumentation = []
 opentelemetry-instrumentation-asgi = []
-opentelemetry-instrumentation-starlette = []
+opentelemetry-instrumentation-fastapi = []
+opentelemetry-sdk = []
 opentelemetry-semantic-conventions = []
 opentelemetry-util-http = []
 packaging = [
