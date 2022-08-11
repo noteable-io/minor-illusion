@@ -33,17 +33,33 @@ logging_config = {
             "class": "logging.StreamHandler",
             "formatter": "json" if settings.LOGS_AS_JSON else "console",
         },
+        "opensearch": {
+            "level": settings.LOG_LEVEL,
+            "class": "opensearch_logger.OpenSearchHandler",
+            "index_name": "logs",
+            # "extra_fields": {"App": "test", "Environment": "dev"},
+            "hosts": [{"host": "opensearch", "port": 9200}],
+            "http_auth": ("admin", "admin"),
+            "http_compress": True,
+            "use_ssl": True,
+            "verify_certs": False,
+            "ssl_assert_hostname": False,
+            "ssl_show_warn": False,
+        }
     },
     "loggers": {
-        "": {"handlers": ["default"], "level": "INFO"},
-        "uvicorn.error": {
-            "handlers": ["default"],
+        "": {
             "level": "INFO",
+            "handlers": ["default", "opensearch"], 
+        },
+        "uvicorn.error": {
+            "level": "INFO",
+            "handlers": ["default", "opensearch"], 
             "propagate": False,
         },
         "uvicorn.access": {
-            "handlers": ["default"],
             "level": "INFO",
+            "handlers": ["default", "opensearch"], 
             "propagate": False,
         },
     },
