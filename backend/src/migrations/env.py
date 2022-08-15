@@ -1,3 +1,4 @@
+import asyncio
 from logging.config import fileConfig
 
 from alembic import context
@@ -6,6 +7,7 @@ from alembic import context
 from app.models import BaseDAO
 from app.settings import get_settings
 from sqlalchemy import engine_from_config, pool
+from sqlalchemy.ext.asyncio import async_engine_from_config
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -63,35 +65,26 @@ def do_run_migrations(connection):
         context.run_migrations()
 
 
-def run_migrations_online():
+async def run_migrations_online():
     """Run migrations in 'online' mode.
 
     In this scenario we need to create an Engine
     and associate a connection with the context.
 
     """
-    connectable = engine_from_config(
+    connectable = async_engine_from_config(
         config.get_section(config.config_ini_section),
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
     )
 
-    with connectable.connect() as connection:
-        # "transactions_per_migration" may or may not be necessary as alembic
-        # upgrades past 1.5.0
-        # see https://alembic.sqlalchemy.org/en/latest/changelog.html#change-3374635e9b84c495d2ede3c978cd57e6
-        context.configure(
-            connection=connection,
-            target_metadata=target_metadata,
-            transaction_per_migration=True,
-            as_sql=False,
-        )
+    async with connectable.connect() as connection:
+        await connection.run_sync(do_run_migrations)
 
-        with context.begin_transaction():
-            context.run_migrations()
+    await connectable.dispose()
 
 
 if context.is_offline_mode():
     run_migrations_offline()
 else:
-    run_migrations_online()
+    asyncio.run(run_migrations_online())
