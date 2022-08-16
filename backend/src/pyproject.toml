@@ -21,10 +21,10 @@ uvicorn = "^0.15.0"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 # As of Aug 2022, need to use 1.12 pre-release for main opentelemetry libs
 # see https://github.com/open-telemetry/opentelemetry-python-contrib/issues/1182
-opentelemetry-distro = {version = "^0.32b0", allow-prereleases = true}
-opentelemetry-sdk = {version = "^1.12.0rc2", allow-prereleases = true}
-opentelemetry-api = {version = "^1.12.0rc2", allow-prereleases = true}
-opentelemetry-exporter-otlp-proto-grpc = {version = "^1.12.0rc2", allow-prereleases = true}
+opentelemetry-distro = "^0.33b0"
+opentelemetry-sdk = "^1.12.0"
+opentelemetry-api = "^1.12.0"
+opentelemetry-exporter-otlp-proto-grpc = "^1.12.0"
 opensearch-logger = "^1.2.1"
 
 [tool.poetry.dev-dependencies]
