@@ -25,6 +25,7 @@ opentelemetry-distro = {version = "^0.32b0", allow-prereleases = true}
 opentelemetry-sdk = {version = "^1.12.0rc2", allow-prereleases = true}
 opentelemetry-api = {version = "^1.12.0rc2", allow-prereleases = true}
 opentelemetry-exporter-otlp-proto-grpc = {version = "^1.12.0rc2", allow-prereleases = true}
+opensearch-logger = "^1.2.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.5"
