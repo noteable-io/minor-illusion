@@ -1,7 +1,6 @@
 import logging.config
 
 import structlog
-
 from app.settings import get_settings
 
 settings = get_settings()
@@ -34,17 +33,33 @@ logging_config = {
             "class": "logging.StreamHandler",
             "formatter": "json" if settings.LOGS_AS_JSON else "console",
         },
+        "opensearch": {
+            "level": settings.LOG_LEVEL,
+            "class": "opensearch_logger.OpenSearchHandler",
+            "index_name": "logs",
+            # "extra_fields": {"App": "test", "Environment": "dev"},
+            "hosts": [{"host": "opensearch", "port": 9200}],
+            "http_auth": ("admin", "admin"),
+            "http_compress": True,
+            "use_ssl": True,
+            "verify_certs": False,
+            "ssl_assert_hostname": False,
+            "ssl_show_warn": False,
+        }
     },
     "loggers": {
-        "": {"handlers": ["default"], "level": "INFO"},
-        "uvicorn.error": {
-            "handlers": ["default"],
+        "": {
             "level": "INFO",
+            "handlers": ["default", "opensearch"], 
+        },
+        "uvicorn.error": {
+            "level": "INFO",
+            "handlers": ["default", "opensearch"], 
             "propagate": False,
         },
         "uvicorn.access": {
-            "handlers": ["default"],
             "level": "INFO",
+            "handlers": ["default", "opensearch"], 
             "propagate": False,
         },
     },
@@ -59,7 +74,7 @@ def setup_logging():
             structlog.stdlib.PositionalArgumentsFormatter(),
             structlog.processors.StackInfoRenderer(),
             structlog.processors.format_exc_info,
-            # structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
+            structlog.stdlib.ProcessorFormatter.wrap_for_formatter,
         ],
         context_class=dict,
         logger_factory=structlog.stdlib.LoggerFactory(),
@@ -69,3 +84,5 @@ def setup_logging():
     logging.config.dictConfig(logging_config)
 
     logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+    logging.getLogger('app').setLevel(logging.DEBUG)
+    logging.getLogger('opensearch').setLevel(logging.ERROR)
