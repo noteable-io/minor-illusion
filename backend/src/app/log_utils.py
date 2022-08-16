@@ -84,3 +84,5 @@ def setup_logging():
     logging.config.dictConfig(logging_config)
 
     logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
+    logging.getLogger('app').setLevel(logging.DEBUG)
+    logging.getLogger('opensearch').setLevel(logging.ERROR)
